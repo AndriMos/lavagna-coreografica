@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lavagna coreografica</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: su telefono una colonna (viste, palco, barra dei conteggi, pannelli); da 920px palco e conteggi a sinistra, pannelli a destra. */
+:root{
+  --bg:#f2efed; --surface:#fffcfa; --ink:#201c23; --mut:#6c6470; --line:#dcd5d2;
+  --accent:#8a1c3b; --accent-ink:#ffffff; --soft:#f6e7ec;
+  --floor:#2b292e; --tape:#f3efe6; --spike:#f2c230; --wing:#151318;
+  --off:#e2dcd8; --offline:#c9c0bc; --seat:#bfb4b0; --aud:#e9e4e1;
+  --f-display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17151a; --surface:#221f26; --ink:#efeaf1; --mut:#a59ba9; --line:#39333d;
+  --accent:#e57a98; --accent-ink:#22070f; --soft:#3a1f29;
+  --wing:#0b0a0d; --off:#262229; --offline:#3c3640; --seat:#4a434e; --aud:#1e1b21;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17151a; --surface:#221f26; --ink:#efeaf1; --mut:#a59ba9; --line:#39333d;
+  --accent:#e57a98; --accent-ink:#22070f; --soft:#3a1f29;
+  --wing:#0b0a0d; --off:#262229; --offline:#3c3640; --seat:#4a434e; --aud:#1e1b21;
+  color-scheme:dark}
+
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 28px}
+.w{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+h1{font:700 26px/1.1 var(--f-display);letter-spacing:.01em;margin:0;text-transform:uppercase}
+h2{font:700 17px/1.2 var(--f-display);letter-spacing:.06em;text-transform:uppercase;margin:0}
+.tag{font:600 13px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lbl{font:600 12px var(--f-display);letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+.main{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
+@media (min-width:920px){.main{grid-template-columns:minmax(0,1.75fr) minmax(300px,1fr)}}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+
+button,input,select{font:inherit;color:var(--ink)}
+button{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-height:44px;cursor:pointer}
+button:disabled{opacity:.45;cursor:default}
+button.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=number],input[type=text],select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-height:44px;width:100%;box-sizing:border-box;font-variant-numeric:tabular-nums}
+input:disabled,select:disabled{opacity:.55}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sb{justify-content:space-between}
+.two{display:grid;grid-template-columns:1fr 1.6fr;gap:8px}
+.three{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.note{color:var(--mut);font-size:13px;margin:0}
+details.guide summary{cursor:pointer;font:700 17px var(--f-display);letter-spacing:.06em;text-transform:uppercase}
+.guide ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:65ch}
+.warn{background:var(--soft);border-radius:8px;padding:8px 10px;font-size:14px;margin:0}
+
+.views{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.views button{flex:1;border:0;border-right:1px solid var(--line);border-radius:0;background:transparent;
+  font:600 16px var(--f-display);letter-spacing:.05em;text-transform:uppercase;padding:10px 6px;min-height:46px}
+.views button:last-child{border-right:0}
+.views button.on{background:var(--accent);color:var(--accent-ink)}
+#vdesc{color:var(--mut);margin:0}
+#vdesc b{color:var(--ink)}
+
+.banner{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px;position:relative}
+svg#pal{display:block;width:100%;height:auto;max-height:66vh;touch-action:none;user-select:none;-webkit-user-select:none}
+.ci{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;font:700 clamp(90px,22vw,200px)/1 var(--f-display);color:var(--spike);text-shadow:0 4px 22px rgba(0,0,0,.55)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--mut);padding:6px 4px 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.read{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+#rtxt{font-size:16px;font-weight:600;margin:0}
+
+/* trasporto e barra dei conteggi */
+.trow{display:flex;gap:10px 14px;align-items:center;flex-wrap:wrap;justify-content:space-between}
+.tbtns{display:flex;gap:6px}
+.tbtns button{min-width:48px;font-size:20px;line-height:1}
+.tbtns .play{min-width:116px;font-size:17px;font-weight:700}
+.clockw{display:flex;flex-direction:column;align-items:flex-end;min-width:0}
+.clock{font:700 28px/1 var(--f-display);letter-spacing:.02em;text-transform:uppercase;font-variant-numeric:tabular-nums}
+.tl{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+#tls{display:block;height:120px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.oc0{fill:var(--surface)} .oc1{fill:var(--bg)}
+.ol{fill:var(--ink);font:700 14px var(--f-display)}
+.bt{stroke:var(--mut);stroke-opacity:.45;stroke-width:1.5}
+.sb0{fill:var(--accent);fill-opacity:.15} .sb1{fill:var(--accent);fill-opacity:.3}
+.st{fill:var(--ink);font:700 12px var(--f-display);letter-spacing:.08em}
+.tr{fill:var(--accent);fill-opacity:.3}
+.fm circle{fill:var(--surface);stroke:var(--accent);stroke-width:2.5}
+.fm text{fill:var(--accent);font:700 14px var(--f-display);text-anchor:middle;dominant-baseline:central}
+.fm.on circle{fill:var(--accent)} .fm.on text{fill:var(--accent-ink)}
+.ph{stroke:var(--ink);stroke-width:2.5}
+.wave{stroke:var(--mut);stroke-width:1.6;opacity:.7}
+.filebtn{position:relative;display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;min-height:44px;padding:8px 16px;border-radius:8px;cursor:pointer;background:var(--accent);color:var(--accent-ink);font-weight:600}
+.filebtn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.filebtn:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.mtit{margin:0}
+.mgrid{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;align-items:end}
+.tap{min-height:56px;font-weight:700;width:100%;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.offrow input{width:92px}
+details.mhow summary{cursor:pointer;font-weight:600}
+.mhow ol{margin:8px 0 0;padding-left:22px;display:flex;flex-direction:column;gap:6px;max-width:65ch}
+.tleg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--mut)}
+.fnote{margin:0;font-size:14px}
+.fnote b{font-family:var(--f-display);letter-spacing:.06em;text-transform:uppercase;font-size:13px;color:var(--accent)}
+.opts{align-items:flex-end}
+.mini{width:84px}.mini2{width:150px}
+.chk2{display:inline-flex;align-items:center;gap:6px;min-height:44px}
+.chk2 input{width:20px;height:20px;accent-color:var(--accent)}
+
+.comp{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(3,56px);gap:4px;align-self:flex-start}
+.comp button{padding:0;min-height:0;font-size:22px;line-height:1;display:grid;place-items:center}
+.comp .mid{display:grid;place-items:center}
+#ftxt{margin:0;color:var(--mut);font-size:14px}
+.seg{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.seg button{padding:6px 2px;font-size:13px}
+
+.grp{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.grp:first-child{border-top:0;padding-top:0}
+.ghead{display:grid;grid-template-columns:44px 1fr 112px;gap:6px;align-items:center}
+.ghead input[type=color]{width:44px;height:44px;padding:0;border:1px solid var(--line);border-radius:8px;background:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{min-width:48px;font:700 16px var(--f-display);letter-spacing:.04em}
+.chip.sel{outline:3px solid var(--accent);outline-offset:1px}
+.srow{display:grid;grid-template-columns:1fr 76px 44px;gap:6px;align-items:end}
+.srow button{padding:0}
+details.set summary{cursor:pointer;font:700 17px var(--f-display);letter-spacing:.06em;text-transform:uppercase}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:10px}
+.chk{flex-direction:row;align-items:center;gap:8px;min-height:44px}
+.chk input{width:22px;height:22px;accent-color:var(--accent)}
+
+/* coreografie, condivisione, il mio percorso */
+.dv{display:none!important}
+.dmode .dv{display:flex!important}
+.dmode .ed{display:none!important}
+.filebtn.alt{background:var(--surface);color:var(--ink);border:1px solid var(--line);font-weight:400}
+.copyt{width:100%;min-height:90px;box-sizing:border-box;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+details#libd summary{cursor:pointer;font-weight:600}
+.lib{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.lrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:6px 6px 6px 10px}
+.lrow.cur{border-color:var(--accent);background:var(--soft)}
+.lrow b{display:block;overflow-wrap:anywhere}
+.lrow small{color:var(--mut)}
+.who{display:flex;flex-wrap:wrap;gap:8px}
+.who button{min-width:64px;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;font:700 20px/1.1 var(--f-display);letter-spacing:.04em}
+.who button small{font:400 12px var(--f-body);letter-spacing:0}
+.who button.on{outline:4px solid var(--ink);outline-offset:2px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.steps button{width:100%;text-align:left;display:flex;flex-direction:column;gap:2px;padding:10px 12px;min-height:0}
+.steps .when{font:700 15px var(--f-display);letter-spacing:.04em;text-transform:uppercase;color:var(--accent);font-variant-numeric:tabular-nums}
+.steps .secl{font:600 11px var(--f-display);letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+.steps .nt{color:var(--mut);font-style:italic}
+.steps li.on button{border-color:var(--accent);background:var(--soft);box-shadow:inset 4px 0 0 var(--accent)}
+.dim{opacity:.28}
+.main{min-width:0}
+@media (max-width:919px){.dmode .main{display:flex;flex-direction:column;align-items:stretch;min-width:0;width:100%}.dmode .col{display:contents}
+  .dmode .stage{order:1}.dmode #tcard{order:2}.dmode #dsteps{order:3}.dmode #mcard{order:4}.dmode .read{order:5}}
+#pscheda{display:none}
+@media print{
+  :root,:root:not([data-theme="light"]),:root[data-theme="dark"]{--bg:#fff;--surface:#fff;--ink:#111;--mut:#444;--line:#bbb;--floor:#f3f1ee;--tape:#555;--spike:#9a7300;--wing:#888;--off:#fff;--offline:#bbb;--seat:#ccc;--aud:#fff;--accent:#8a1c3b;color-scheme:light}
+  body{background:#fff;padding:0}
+  .w{display:none!important}
+  #pscheda{display:block;font:12px/1.35 var(--f-body);color:#111}
+  #pscheda h1{font:700 22px var(--f-display);text-transform:uppercase;margin:0 0 2px}
+  #pscheda>p{margin:0 0 8px}
+  .ps-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .ps-item{break-inside:avoid;border:1px solid #bbb;border-radius:6px;padding:6px}
+  .ps-item svg{display:block;width:100%;height:auto}
+  .ps-item p{margin:4px 0 0}
+  @page{margin:12mm}
+}
+
+/* palco */
+.floor{fill:var(--floor)}
+.gridl{stroke:var(--tape);stroke-opacity:.15;stroke-width:2}
+.center{stroke:var(--tape);stroke-opacity:.5;stroke-width:3;stroke-dasharray:14 12}
+.cross{stroke:var(--spike);stroke-width:5;stroke-linecap:round}
+.edge{stroke:var(--tape);stroke-width:7}
+.cyc,.wing{fill:var(--wing)}
+.off{fill:var(--off);stroke:var(--offline);stroke-width:2;stroke-dasharray:10 8}
+.aud{fill:var(--aud)}
+.seat{fill:var(--seat)}
+.tick{stroke:var(--spike);stroke-width:6}
+.num{fill:var(--spike);font:700 40px var(--f-display);text-anchor:middle;dominant-baseline:central}
+.qn{fill:var(--ink);font:700 34px var(--f-display);text-anchor:middle;dominant-baseline:central}
+.qs{fill:var(--mut);font:600 22px var(--f-display);text-anchor:middle;dominant-baseline:central;letter-spacing:1px}
+.side{fill:var(--accent);font:700 30px var(--f-display);text-anchor:middle;dominant-baseline:central;letter-spacing:2px}
+.big{fill:var(--mut);font:700 30px var(--f-display);text-anchor:middle;dominant-baseline:central;letter-spacing:6px}
+.depf{fill:var(--tape);fill-opacity:.45;font:600 22px var(--f-display);text-anchor:middle;dominant-baseline:central}
+.small,.dep{fill:var(--mut);font:600 22px var(--f-display);text-anchor:middle;dominant-baseline:central;letter-spacing:2px}
+.dn{cursor:grab}
+.dn.lock{cursor:pointer}
+.dn text{font-family:var(--f-display);font-weight:700;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.ring{fill:none;stroke:var(--tape);stroke-width:4;stroke-dasharray:9 6}
+.badge{fill:var(--tape);stroke:var(--floor);stroke-width:3}
+.btxt{fill:var(--floor)}
+.offd{opacity:.8}
+.trk{fill:none;stroke-width:5;stroke-dasharray:14 10;stroke-linecap:round;opacity:.7}
+.trk.on{stroke-width:7;opacity:1}
+.ghost{fill:none;stroke-width:4;stroke-dasharray:6 6;opacity:.6}
+.hdl{fill:var(--spike);stroke:#fff;stroke-width:5;cursor:grab}
+</style>
+</head>
+<body>
+<div class="w">
+  <header><h1>Lavagna coreografica</h1><span class="tag ed">Tappa 5 · condivisione</span><span class="tag dv">Il mio percorso</span></header>
+
+  <div class="views" role="tablist" aria-label="Vista del palco">
+    <button id="v-pub" data-v="pub" role="tab">Pubblico</button>
+    <button id="v-bal" data-v="bal" role="tab">Ballerino</button>
+    <button id="v-spe" data-v="spe" role="tab">Specchio</button>
+  </div>
+  <p id="vdesc"></p>
+
+  <div id="ban" class="banner ed" hidden>
+    <span>Questa è una <b>coreografia di esempio</b>: premi <b>▶ Play</b> per vederla. Poi svuota e monta la tua.</span>
+    <div class="row"><button id="bback" class="pri" hidden>Torna alla mia coreografia</button><button id="bsv">Svuota e comincia</button></div>
+  </div>
+  <div id="dbar" class="banner dv"><span id="dbart">Apro la coreografia…</span><div class="row"><button id="dcopy" hidden>Sono un insegnante: modifica una copia</button><button id="dexit" class="pri" hidden>Torna all'editor</button></div></div>
+  <section class="card dv" id="dwho"></section>
+
+  <div class="main">
+    <div class="col">
+      <div class="stage">
+        <svg id="pal" role="img" aria-label="Pianta del palcoscenico con i ballerini"><g id="bgL"></g><g id="fgL"></g></svg>
+        <div id="ci" class="ci" hidden></div>
+        <div class="legend" id="leg"></div>
+      </div>
+
+      <section class="card" id="tcard" aria-label="Conteggi">
+        <div class="trow">
+          <div class="tbtns">
+            <button id="bst" aria-label="Torna all'inizio" title="Torna all'inizio">⏮</button>
+            <button id="bpr" aria-label="Formazione precedente" title="Formazione precedente">‹</button>
+            <button id="bpl" class="pri play">▶ Play</button>
+            <button id="bnx" aria-label="Formazione successiva" title="Formazione successiva">›</button>
+          </div>
+          <div class="clockw"><div id="clk" class="clock">Otto 1 · tempo 1</div><div id="csec" class="lbl"></div></div>
+        </div>
+        <p id="tmsg" class="warn" hidden></p>
+        <div class="tl" id="tlw"><svg id="tls" role="img" aria-label="Barra dei conteggi a otto"></svg></div>
+        <div class="tleg"><span>Numeri in alto = otto (gruppi da 8 tempi)</span><span>● formazione</span><span>▬ transizione: i ragazzi si spostano</span></div>
+        <p id="fnote" class="fnote" hidden></p>
+        <div class="row opts">
+          <label class="f mini2"><span class="lbl">Velocità</span><select id="ispd"><option value="0.5">Metà (50%)</option><option value="0.75">Lenta (75%)</option><option value="1">Normale</option></select></label>
+          <label class="chk2"><input type="checkbox" id="omet"> Metronomo</label>
+          <label class="chk2"><input type="checkbox" id="ocin"> Conta 5-6-7-8</label>
+          <label class="chk2"><input type="checkbox" id="opth"> Percorsi</label>
+          <label class="chk2"><input type="checkbox" id="ostp"> Fermati a ogni formazione</label>
+        </div>
+        <div id="exrow" class="row ed" hidden><span class="note">Vuoi vedere un esempio completo? La tua coreografia resta salvata.</span><button id="bex">Apri la coreografia di esempio</button></div>
+      </section>
+
+      <section class="card" id="mcard">
+        <div class="row sb"><h2>Musica</h2><button id="mrem" class="ed" hidden>Togli il brano</button></div>
+        <p id="mtit" class="mtit"></p>
+        <label class="filebtn"><span id="mlbl">♪ Carica il brano</span><input type="file" id="mfile" accept="audio/*,.mp3,.m4a,.wav,.aac,.ogg,.flac"></label>
+        <div class="mgrid ed">
+          <label class="f"><span class="lbl">BPM (battiti al minuto)</span><input id="ibpm" type="number" min="40" max="220" step="0.5"></label>
+          <div class="f"><span class="lbl">Non li sai? Tocca a ritmo</span><button id="btap" class="tap">Batti il tempo</button></div>
+        </div>
+        <div class="f ed"><span class="lbl">Attacco · il punto del brano dove cade l'otto 1, tempo 1</span>
+          <div class="row offrow"><button data-off="-b">− 1 tempo</button><button data-off="-0.05">− 0,05 s</button><input id="moff" type="number" step="0.01" min="0" aria-label="Attacco in secondi"><span class="note">secondi</span><button data-off="0.05">+ 0,05 s</button><button data-off="b">+ 1 tempo</button></div>
+          <button id="bmark" style="align-self:flex-start">Segna l'attacco ora</button></div>
+        <p id="mnote" class="warn" hidden></p>
+        <details class="mhow ed"><summary>Come si mette a tempo, in 3 passi</summary><ol>
+          <li>Carica il brano e premi <b>▶ Play</b>.</li>
+          <li>Mentre ascolti, tocca <b>Batti il tempo</b> a ogni battito per almeno 8 volte (sul computer anche con il tasto <b>T</b>): i BPM si calcolano da soli.</li>
+          <li>Torna all'inizio con <b>⏮</b>, premi <b>▶ Play</b> e tocca <b>Segna l'attacco ora</b> proprio quando i ragazzi partono con il loro «1». Poi rifinisci con i pulsanti ±, guardando se i numeri degli otto cadono sui picchi dell'onda.</li></ol></details>
+        <p class="note">Il brano resta su questo dispositivo: non finisce mai nel link né nei file che condividi. Ogni ragazzo caricherà il suo.</p>
+      </section>
+
+      <div class="read" aria-live="polite"><p id="rtxt"></p></div>
+
+      <details class="card guide ed" id="guide">
+        <summary>Come si monta una coreografia</summary>
+        <ol>
+          <li><b>Partenza.</b> Sulla formazione 1 sistema i ragazzi dove stanno all'inizio, anche in quinta.</li>
+          <li><b>Nuova formazione.</b> Nel riquadro Formazione tocca <b>+ Formazione dopo questa</b>: l'app la mette un otto più avanti, con i ragazzi dov'erano.</li>
+          <li><b>Sposta i ragazzi</b> dove devono arrivare. Il cerchio tratteggiato mostra da dove partono.</li>
+          <li><b>Scegli in quanti tempi si spostano</b> (Si spostano in…). Di solito 4.</li>
+          <li><b>Premi ▶ Play.</b> L'app conta 5-6-7-8 e li fa muovere a tempo.</li>
+          <li><b>Strada curva.</b> Dalla formazione 2 in poi, tocca un ragazzo che si sposta: a metà della sua strada compare un pallino giallo. Trascinalo per curvarla.</li>
+          <li><b>Musica.</b> Nel riquadro Musica carica il brano, batti il tempo e segna l'attacco: da lì Play fa partire musica e ragazzi insieme.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="col">
+      <section class="card dv" id="dsteps"><div class="row sb"><h2>La mia scaletta</h2><button id="bprint">Stampa la mia scheda</button></div><div id="dstl"></div><p id="dprn" class="note"></p></section>
+
+      <section class="card ed" id="ccard">
+        <div class="row sb"><h2>Coreografia</h2><button id="bnew">+ Nuova</button></div>
+        <label class="f"><span class="lbl">Titolo</span><input id="ctit" type="text" maxlength="60" autocomplete="off" placeholder="es. Saggio 2027 · 2ªB · Mamma Mia"></label>
+        <div class="row"><button id="bsave" class="pri">Salva su file</button><label class="filebtn alt"><span>Apri file</span><input type="file" id="ofile" accept=".json,application/json"></label><button id="bdup">Duplica</button></div>
+        <p id="bkn" class="note"></p>
+        <div id="ccopyb" class="f" hidden><p class="warn" id="ccopyh"></p><textarea id="ccopyt" class="copyt" readonly aria-label="Testo da copiare"></textarea><button id="ccopyc">Copia il testo</button></div>
+        <details id="libd"><summary id="libs">Le mie coreografie</summary><div id="libl" class="lib"></div></details>
+      </section>
+
+      <section class="card ed" id="scard">
+        <h2>Condividi con i ragazzi</h2>
+        <label class="chk2"><input type="checkbox" id="shini"> Solo sigle, senza nomi (consigliato con i minorenni)</label>
+        <div class="row"><button id="bprev" class="pri">Vedi come i ragazzi</button><button id="blink">Copia il link</button><button id="bshf">File per i ragazzi</button></div>
+        <p id="shn" class="note"></p>
+        <div id="scopyb" class="f" hidden><p class="warn" id="scopyh"></p><textarea id="scopyt" class="copyt" readonly aria-label="Testo da copiare"></textarea><button id="scopyc">Copia</button></div>
+        <p class="note">Ogni ragazzo apre il link o il file, tocca la sua sigla e vede il suo percorso con la scaletta. La musica non viaggia: ognuno la carica dal suo telefono.</p>
+      </section>
+
+      <section class="card ed" id="fcard">
+        <div class="row sb"><h2 id="ftit">Formazione</h2><button class="bun">↶ Annulla</button></div>
+        <div id="fon" class="f" style="gap:10px">
+          <div class="three">
+            <label class="f"><span class="lbl">Arriva sull'otto</span><input id="fo" type="number" min="1" max="200" step="1"></label>
+            <label class="f"><span class="lbl">Tempo</span><select id="ftp"></select></label>
+            <label class="f" id="fdw"><span class="lbl">Si spostano in</span><select id="fd"></select></label>
+          </div>
+          <p id="fdn" class="note"></p>
+          <label class="f"><span class="lbl">Nota per i ragazzi</span><input id="fnt" type="text" maxlength="80" autocomplete="off" placeholder="es. braccia in alto sul 7, sorriso!"></label>
+          <label class="f" id="dspw"><span class="lbl">Disponi tutti in questa formazione</span>
+            <select id="dsp"><option value="">Scegli…</option><option value="linea">In linea</option><option value="finestra">A finestra (due file sfalsate)</option><option value="v">A V</option><option value="cerchio">In cerchio</option><option value="quinte">Tutti in quinta</option></select></label>
+        </div>
+        <p id="foff" class="warn" hidden></p>
+        <div class="row"><button class="pri" id="badd">+ Formazione</button><button id="bdelf">Elimina formazione</button></div>
+      </section>
+
+      <section class="card ed" id="nosel">
+        <h2>Ballerino</h2>
+        <p class="note">Tocca una pedina sul palco o una sigla qui sotto per cambiarne lo sguardo, il livello e il gruppo. Trascinala nelle zone grigie ai lati per mandarla fuori scena.</p>
+      </section>
+      <section class="card ed" id="selp" hidden>
+        <div class="row sb"><h2 id="stit">Ballerino</h2><button class="bun">↶ Annulla</button></div>
+        <div class="two">
+          <label class="f"><span class="lbl">Sigla</span><input id="bi" type="text" maxlength="3" autocomplete="off"></label>
+          <label class="f"><span class="lbl">Nome (facoltativo)</span><input id="bn" type="text" maxlength="24" autocomplete="off"></label>
+        </div>
+        <label class="f"><span class="lbl">Gruppo</span><select id="bg"></select></label>
+        <p id="selwarn" class="warn" hidden>Qui il ballerino è in movimento. Per cambiare posizione, sguardo o livello vai su una formazione: tocca un numero sulla barra dei conteggi.</p>
+        <div class="f"><span class="lbl">Sguardo</span>
+          <div class="row" style="align-items:flex-start;gap:12px"><div id="comp" class="comp"></div><p id="ftxt"></p></div></div>
+        <div class="f"><span class="lbl">Livello</span><div id="liv" class="seg"></div></div>
+        <p id="curvn" class="note" hidden></p>
+        <div class="row"><button id="bfu"></button><button id="bstr" hidden>Raddrizza percorso</button><button id="bdel">Elimina ballerino</button></div>
+      </section>
+
+      <section class="card ed">
+        <div class="row sb"><h2>Compagnia</h2><button id="bag">+ Gruppo</button></div>
+        <div id="cmp"></div>
+        <label class="f"><span class="lbl">Colore delle pedine</span>
+          <select id="ccol"><option value="gruppo">Per gruppo (la forma indica il gruppo)</option><option value="livello">Per livello (la forma resta del gruppo)</option></select></label>
+      </section>
+
+      <section class="card ed">
+        <div class="row sb"><h2>Sezioni del brano</h2><button id="bsez">+ Sezione qui</button></div>
+        <div id="sezl" class="f" style="gap:8px"></div>
+        <p class="note">Intro, strofa, ritornello: compaiono sopra la barra dei conteggi. Toccane una sulla barra per saltarci.</p>
+      </section>
+
+      <details class="card set ed" id="set">
+        <summary>Misure del palco</summary>
+        <div class="sgrid">
+          <label class="f" style="grid-column:1/-1"><span class="lbl">Palco tipo</span>
+            <select id="preset"><option value="">Scegli…</option><option value="10,7,3">Non so le misure · palco di scuola tipo</option><option value="8,6,2">Sala prove · 8 × 6 m</option><option value="12,8,4">Teatro medio · 12 × 8 m</option><option value="14,10,5">Teatro grande · 14 × 10 m</option></select></label>
+          <label class="f"><span class="lbl">Larghezza (m)</span><input id="iw" type="number" min="4" max="24" step="0.5"></label>
+          <label class="f"><span class="lbl">Profondità (m)</span><input id="id" type="number" min="3" max="16" step="0.5"></label>
+          <label class="f"><span class="lbl">Quinte per lato</span><input id="iq" type="number" min="1" max="6" step="1"></label>
+          <label class="f"><span class="lbl">Numeri ogni</span><select id="ip"><option value="0">Automatico</option><option value="0.5">0,5 m</option><option value="0.6">0,6 m</option><option value="0.8">0,8 m</option><option value="1">1 m</option><option value="1.2">1,2 m</option><option value="1.5">1,5 m</option></select></label>
+          <label class="f chk"><input id="ig" type="checkbox"> Griglia</label>
+          <label class="f chk"><input id="in" type="checkbox"> Numeri a terra</label>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div id="pscheda" aria-hidden="true"></div>
+
+<script>
+var K=100,R=42,M=2.7,CW=16,CO,vista="pub",sel=null,drag=null,undoS=[],cur=0,playing=null,AC=null;
+var PR={showP:true,met:true,cin:true,speed:1,stopF:false,shIni:true};
+var MODE="edit",DKIND=null,ME=null,LIBERR=false,SHLINK="",SHT=null;
+var EMBED=(function(){try{return window.self!==window.top}catch(e){return true}})();
+var $=function(i){return document.getElementById(i)},svg=$("pal"),svgT=$("tls");
+var PAL=["#ef6f6c","#4aa3df","#9b7be0","#3fbf8f","#f0a04b","#e85d9a"];
+var FORME={cerchio:"Cerchio",quadrato:"Quadrato",triangolo:"Triangolo",rombo:"Rombo"};
+var LIV=[["piedi","In piedi"],["seduto","Seduto"],["terra","A terra"],["salto","Salto"],["presa","Presa"]],LB={seduto:"SD",terra:"T",salto:"S",presa:"P"};
+var LIVT={piedi:"in piedi",seduto:"seduto",terra:"a terra",salto:"in salto",presa:"in presa (porté)"};
+var LCOL={piedi:"#c9c2b8",seduto:"#4aa3df",terra:"#9a6b4f",salto:"#f0a04b",presa:"#e85d9a"};
+var NOMI=["Intro","Strofa","Pre-ritornello","Ritornello","Strofa 2","Ritornello 2","Bridge","Finale"];
+var DURS=[1,2,3,4,5,6,7,8,12,16];
+var FT={0:"verso il pubblico (di fronte)",45:"in diagonale avanti, verso destra palco",90:"verso destra palco (di profilo)",135:"in diagonale indietro, verso destra palco",180:"verso il fondale (di spalle)",225:"in diagonale indietro, verso sinistra palco",270:"verso sinistra palco (di profilo)",315:"in diagonale avanti, verso sinistra palco"};
+var DESC={
+  pub:"<b>Vista pubblico.</b> Come ti vede la platea: proscenio in basso, <b>destra palco a sinistra</b> dello schermo.",
+  bal:"<b>Vista ballerino.</b> Sei in scena e guardi il pubblico: proscenio in alto, <b>destra palco alla tua destra</b>.",
+  spe:"<b>Vista specchio.</b> Come in sala prove, con lo specchio al posto del pubblico: <b>destra palco appare a destra</b>."
+};
+var HINT="Tocca una pedina, oppure un punto vuoto del palco per sapere come si chiama.";
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function r1(v){return Math.round(v*10)/10}
+function fmt(v){return r1(v).toFixed(1).replace(".",",")}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function cl(o){return JSON.parse(JSON.stringify(o))}
+function byC(a,b){return a.c-b.c}
+function P(){return CO.palco}
+function FS(){return CO.formazioni}
+function grp(id){return CO.gruppi.find(function(g){return g.id==id})||CO.gruppi[0]}
+function bal(id){return CO.ballerini.find(function(b){return b.id==id})}
+function fillOf(b,p){return CO.colori=="livello"?LCOL[p.liv]||LCOL.piedi:grp(b.gruppo).colore}
+function step(){var p=P();return p.passo>0?p.passo:Math.max(.4,Math.round((p.w/2)/4.5*10)/10)}
+function ink(h){var n=parseInt(h.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255;return(.299*r+.587*g+.114*b)>165?"#1b1a1d":"#ffffff"}
+function snapF(f){return(Math.round(f/45)*45+360)%360}
+function hint(t){$("rtxt").textContent=t}
+function tmsg(h){$("tmsg").hidden=!h;$("tmsg").innerHTML=h}
+
+/* ---------- il tempo: c = (otto-1)*8 + (tempo-1), mezzi tempi ammessi ---------- */
+function lab(c){var o=Math.floor(c/8)+1,t=Math.floor(c%8)+1;return"otto "+o+", tempo "+t+(c%1>=.5?" e":"")}
+function Lab(c){var s=lab(c);return s[0].toUpperCase()+s.slice(1)}
+function secAt(c){var s=null;CO.sezioni.forEach(function(x){if(x.da<=c+1e-6)s=x});return s}
+function mmss(c){return mm(secOf(c))}
+function fi(){var F=FS();for(var i=0;i<F.length;i++)if(Math.abs(F[i].c-cur)<1e-6)return i;return-1}
+function nextIdx(t){var F=FS();for(var i=0;i<F.length;i++)if(F[i].c>t+1e-6)return i;return-1}
+function edF(){var i=fi();return i<0?null:FS()[i]}
+function pos(id){var F=edF();return F?F.pos[id]:null}
+function LEN(){var F=FS(),du=MUS&&MUS.dur?MUS.dur:CO.musica.durata||0;return Math.max(64,Math.ceil((F[F.length-1].c+16)/8)*8,du?Math.ceil(cOf(du)/8)*8:0)}
+function ease(u){return u-Math.sin(2*Math.PI*u)/(2*Math.PI)*.6}
+/* posizione di un ballerino in un momento qualsiasi: ferma sulla formazione, poi si sposta negli ultimi "dur" tempi prima della successiva */
+function cpos(id,t){if(t==null)t=cur;var F=FS(),k=0;for(var i=0;i<F.length;i++)if(F[i].c<=t+1e-6)k=i;
+  var A=F[k].pos[id];if(k==F.length-1)return A;var N=F[k+1],dur=Math.min(N.dur||0,N.c-F[k].c),s=N.c-dur;if(t<=s||dur<=0)return A;
+  var e=ease(clamp((t-s)/dur,0,1)),B=N.pos[id],C=B.curva||{x:(A.x+B.x)/2,y:(A.y+B.y)/2},m=1-e;
+  var x=m*m*A.x+2*m*e*C.x+e*e*B.x,y=m*m*A.y+2*m*e*C.y+e*e*B.y,df=((B.f-A.f+540)%360)-180;
+  return{x:x,y:y,f:(A.f+df*e+360)%360,liv:e<.5?A.liv:B.liv,fuori:Math.abs(x)>P().w/2,via:null,mov:true}}
+
+/* ---------- dati, salvataggio e conversione ---------- */
+function vuota(){return{v:2,colori:"gruppo",titolo:"",note:"",palco:{w:10,d:7,quinte:3,griglia:true,numeri:true,passo:0},musica:{bpm:120,offset:0,titolo:""},
+  gruppi:[{id:"A",nome:"Gruppo A",colore:PAL[0],forma:"cerchio"}],ballerini:[],scena:[],sezioni:[],formazioni:[{c:0,dur:0,nota:"",pos:{}}]}}
+function normS(o){o.sezioni.sort(function(a,b){return a.da-b.da});o.sezioni.forEach(function(s,i){var n=o.sezioni[i+1];s.a=n?n.da-1:null})}
+function esempio(){cur=0;CO=vuota();CO.esempio=true;CO.id="esempio";CO.titolo="Esempio · numero di musical";CO.gruppi.push({id:"B",nome:"Gruppo B",colore:PAL[1],forma:"triangolo"});
+  [["GR","A"],["AL","A"],["SO","A"],["LU","B"],["FE","B"],["MA","B"]].forEach(function(a){addB(a[1],a[0],1)});
+  var F=CO.formazioni,ids=CO.ballerini.map(function(b){return b.id}),ma=ids[5];
+  function nf(c,dur,nota,tipo){var f={c:c,dur:dur,nota:nota,pos:cl(F[F.length-1].pos)};ids.forEach(function(i){f.pos[i].curva=null});F.push(f);if(tipo)dispose(tipo,1,f);return f}
+  F[0].nota="Buio: tutti in quinta";dispose("quinte",1,F[0]);
+  var f1=nf(8,8,"Entrata: tutti tranne MA","finestra");f1.pos[ma]=cl(F[0].pos[ma]);
+  var f2=nf(24,4,"Strofa: in linea, entra MA","linea"),a=f1.pos[ma],z=f2.pos[ma];z.curva={x:r1((a.x+z.x)/2),y:r1(Math.max(.4,Math.min(a.y,z.y)-1.6))};
+  var f3=nf(40,6,"Ritornello: tutti a V, braccia in alto sul 7","v");
+  var f4=nf(56,8,"Finale: cerchio, guardate il centro","cerchio");
+  var f5=nf(64,2,"Posa finale!","linea");ids.forEach(function(i,k){f5.pos[i].liv=k<3?"piedi":k==3?"seduto":"terra"});f5.pos[ids[0]].liv="presa";
+  CO.sezioni=[{nome:"Intro",da:0},{nome:"Strofa",da:16},{nome:"Ritornello",da:32},{nome:"Finale",da:48}];normS(CO);CO.musica={bpm:120,offset:2,titolo:"Brano di esempio",durata:37.2}}
+function newId(){return"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function migra(o){ // porta qualsiasi versione salvata al formato attuale (v1 della tappa 2 → v2)
+  if(!o||typeof o!="object"||!o.palco)return null;
+  var b=vuota();for(var k in b)if(o[k]==null)o[k]=b[k];
+  if(o.colori!="livello")o.colori="gruppo";
+  if(!o.musica.bpm)o.musica.bpm=120;if(o.musica.offset==null)o.musica.offset=0;
+  if(!o.gruppi.length)o.gruppi=b.gruppi;
+  o.gruppi.forEach(function(g,i){g.colore=g.colore||PAL[i%PAL.length];g.forma=FORME[g.forma]?g.forma:"cerchio";g.nome=g.nome||("Gruppo "+g.id)});
+  if(!o.formazioni.length)o.formazioni=b.formazioni;
+  o.formazioni.forEach(function(F){F.c=+F.c||0;F.dur=F.dur==null?4:+F.dur;F.nota=F.nota||"";F.pos=F.pos||{}});
+  o.formazioni.sort(byC);o.formazioni[0].c=0;o.formazioni[0].dur=0;
+  o.ballerini.forEach(function(d){if(!d.ini)d.ini=(d.nome||"?").slice(0,2).toUpperCase();if(!d.cast)d.cast=["A"];
+    o.formazioni.forEach(function(F){var p=F.pos[d.id];if(!p)p=F.pos[d.id]={x:0,y:o.palco.d/2};if(p.f==null)p.f=0;if(!p.liv)p.liv="piedi";var hw=o.palco.w/2,n=o.palco.quinte,q=Math.min(n,Math.max(1,Math.ceil(Math.max(p.y,.001)/(o.palco.d/n))));p.fuori=Math.abs(p.x)>hw;p.via=p.fuori?(p.x>0?"dx":"sx")+q:null;if(p.curva===undefined)p.curva=null})});
+  o.sezioni=(o.sezioni||[]).filter(function(s){return s&&s.da!=null}).map(function(s){return{nome:s.nome||"Sezione",da:+s.da}});normS(o);
+  if(!o.id)o.id=o.esempio?"esempio":newId();
+  o.v=2;return o}
+function load(){
+  try{CO=migra(JSON.parse(localStorage.getItem("dz-coreo")))}catch(e){CO=null}
+  if(!CO){esempio();try{var old=JSON.parse(localStorage.getItem("dz-palco"));if(old&&old.w){for(var k in CO.palco)if(old[k]!=null)CO.palco[k]=old[k]}}catch(e){}}
+  try{var v=localStorage.getItem("dz-vista");if(DESC[v])vista=v}catch(e){}
+  try{var pr=JSON.parse(localStorage.getItem("dz-pref"));if(pr)for(var k2 in PR)if(pr[k2]!=null)PR[k2]=pr[k2]}catch(e){}
+  try{var mia=migra(JSON.parse(localStorage.getItem("dz-coreo-mia")));if(mia){localStorage.setItem("dz-coreo-mia",JSON.stringify(mia));if(!libLoad().some(function(x){return x.id==mia.id}))libPut(mia)}}catch(e){}
+  if(!CO.esempio)save();
+}
+/* ---------- le mie coreografie: tutte nel browser, più il file di backup ---------- */
+function libLoad(){try{return JSON.parse(localStorage.getItem("dz-lib"))||[]}catch(e){return[]}}
+function libSave(L){try{localStorage.setItem("dz-lib",JSON.stringify(L));LIBERR=false}catch(e){LIBERR=true}}
+function libPut(o){o=o||CO;if(!o||o.esempio||o.condivisa)return;var L=libLoad(),i=-1;L.forEach(function(x,j){if(x.id==o.id)i=j});
+  var e={id:o.id,titolo:o.titolo||"",agg:Date.now(),n:o.ballerini.length,data:o};if(i>=0)L[i]=e;else L.unshift(e);libSave(L)}
+function hashStr(t){var h=0;for(var i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))|0;return h}
+function coHash(){return hashStr(JSON.stringify(CO))}
+function ago(t){var m=Math.round((Date.now()-t)/60000);if(m<1)return"adesso";if(m<60)return m+(m==1?" minuto fa":" minuti fa");var h=Math.round(m/60);if(h<24)return h+(h==1?" ora fa":" ore fa");var d=Math.round(h/24);return d==1?"ieri":d+" giorni fa"}
+function slug(t){return(String(t||"coreografia").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"coreografia").slice(0,50)}
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function dl(name,text){var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"application/json"}));a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500)}
+function copyText(t,cb){try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){cb(true)},function(){cb(false)});return}}catch(e){}cb(false)}
+function showCopy(pf,help,text){$(pf+"copyb").hidden=!text;$(pf+"copyh").innerHTML=help||"";$(pf+"copyt").value=text||""}
+function openCO(o,msg){pause(true);CO=migra(cl(o));cur=0;sel=null;undoS=[];save();all();restoreMine();window.scrollTo({top:0,behavior:"smooth"});if(msg)hint(msg)}
+function newCO(){var pl=cl(P());libPut();var o=vuota();o.id=newId();o.palco=pl;o.titolo="Nuova coreografia";openCO(o,"Nuova coreografia: dalle un titolo e aggiungi i ragazzi.")}
+function libDel(id,bt){if(!bt.dataset.arm){bt.dataset.arm=1;bt.textContent="Sicura?";setTimeout(function(){delete bt.dataset.arm;bt.textContent="Elimina"},3000);return}
+  libSave(libLoad().filter(function(x){return x.id!=id}));idbDo("readwrite",function(st){return st.delete("brano:"+id)}).catch(function(){});
+  if(id==CO.id){var L=libLoad();if(L.length)openCO(L[0].data,"Coreografia eliminata.");else{var o=vuota();o.id=newId();o.palco=cl(P());o.titolo="Nuova coreografia";openCO(o,"Coreografia eliminata.")}}else libPanel()}
+function libOpen(id){var e=libLoad().find(function(x){return x.id==id});if(e){libPut();openCO(e.data,"Aperta «"+(e.titolo||"Senza titolo")+"».")}}
+function libPanel(){var ex=!!CO.esempio,a=document.activeElement;if(a!=$("ctit"))$("ctit").value=ex?"Esempio · numero di musical":CO.titolo||"";$("ctit").disabled=ex;
+  var bk="",cls="note";if(ex)bk="Stai guardando l'esempio: non è tra le tue coreografie. Con <b>Duplica</b> ne fai una tua copia da modificare.";
+  else{var x=lsGet("dz-exp:"+CO.id);if(!x){bk="Non hai ancora un <b>file di backup</b> di questa coreografia. Salvalo sul computer o su Google Drive: se il browser si svuota, il file la salva.";cls="warn"}
+    else if(x.h!=coHash()){bk="Ultimo file di backup: "+ago(x.t)+". Da allora hai fatto modifiche: salvalo di nuovo.";cls="warn"}else bk="File di backup aggiornato ("+ago(x.t)+").";}
+  if(LIBERR){bk="Lo spazio del browser è pieno: salva subito su file ed elimina le coreografie che non usi più.";cls="warn"}
+  $("bkn").innerHTML=bk;$("bkn").className=cls;
+  var L=libLoad().sort(function(p,q){return q.agg-p.agg});$("libs").textContent="Le mie coreografie ("+L.length+")";
+  $("libl").innerHTML=L.length?L.map(function(e){var c=e.id==CO.id;return'<div class="lrow'+(c?" cur":"")+'"><div><b>'+esc(e.titolo||"Senza titolo")+'</b><small>'+e.n+(e.n==1?" ballerino":" ballerini")+" · modificata "+ago(e.agg)+(c?" · aperta ora":"")+'</small></div><button onclick="libOpen(\''+e.id+'\')"'+(c?" disabled":"")+'>Apri</button><button onclick="libDel(\''+e.id+'\',this)">Elimina</button></div>'}).join(""):'<p class="note">Ancora nessuna coreografia: tocca <b>+ Nuova</b>.</p>'}
+function saveFile(){var text=JSON.stringify({app:"lavagna-coreografica",tipo:"coreografia",v:2,salvato:new Date().toISOString(),data:CO}),name=slug(CO.titolo)+".json";
+  if(EMBED){showCopy("c","Nell'anteprima di Claude i file non si scaricano. Dal file dell'app o dal sito, questo pulsante salva il file. Intanto puoi copiare il testo e incollarlo in un documento.",text);return}
+  dl(name,text);if(!CO.esempio)lsSet("dz-exp:"+CO.id,{t:Date.now(),h:coHash()});libPanel();hint("File «"+name+"» salvato nella cartella Download. Tienilo sul computer o caricalo su Google Drive.")}
+function importText(t){var o=null;try{o=JSON.parse(t)}catch(e){}var d=o&&o.data?o.data:o;
+  if(!d||!d.palco||!d.formazioni){hint("Questo file non è una coreografia della lavagna.");return}
+  if((o&&o.tipo=="condivisa")||d.condivisa){enterDancer(d,"shared");return}
+  var m=migra(cl(d));if(libLoad().some(function(x){return x.id==m.id})||m.esempio){m.id=newId();delete m.esempio;m.titolo=(m.titolo||"Coreografia")+" (dal file)"}else lsSet("dz-exp:"+m.id,{t:Date.now(),h:hashStr(JSON.stringify(migra(cl(m))))});
+  libPut();openCO(m,"Coreografia aperta dal file e aggiunta a «Le mie coreografie».")}
+
+/* ---------- condivisione: link compresso e file, solo sigle di default ---------- */
+function canLink(){return!EMBED&&/^https?:$/.test(location.protocol)}
+function sharedCO(){var o=cl(CO);delete o.esempio;o.condivisa=true;if(PR.shIni!==false)o.ballerini.forEach(function(b){b.nome=""});return o}
+function b64u(u){var t="";for(var i=0;i<u.length;i++)t+=String.fromCharCode(u[i]);return btoa(t).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function unb64u(t){t=t.replace(/-/g,"+").replace(/_/g,"/");while(t.length%4)t+="=";var b=atob(t),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+function packCO(o){var js=JSON.stringify(o);if(window.CompressionStream){var st=new Blob([js]).stream().pipeThrough(new CompressionStream("deflate-raw"));return new Response(st).arrayBuffer().then(function(b){return"z"+b64u(new Uint8Array(b))})}
+  return Promise.resolve("j"+b64u(new TextEncoder().encode(js)))}
+function unpack(h){var t=h[0],d=unb64u(h.slice(1));if(t=="z"){var st=new Blob([d]).stream().pipeThrough(new DecompressionStream("deflate-raw"));return new Response(st).text().then(JSON.parse)}
+  if(t=="j")return Promise.resolve(JSON.parse(new TextDecoder().decode(d)));return Promise.reject(new Error("link"))}
+function sharePanel(){$("shini").checked=PR.shIni!==false;if(!canLink())return;clearTimeout(SHT);SHT=setTimeout(function(){packCO(sharedCO()).then(function(h){SHLINK=location.origin+location.pathname+location.search+"#"+h}).catch(function(){SHLINK=""})},250)}
+function shareLink(){showCopy("s","","");
+  if(!canLink()){$("shn").innerHTML="Il link per i ragazzi funziona quando l'app è pubblicata sul sito (Netlify): qui siamo nell'anteprima o nel file. Intanto prova tu con <b>Vedi come i ragazzi</b>, oppure manda il <b>File per i ragazzi</b>.";return}
+  if(!SHLINK){$("shn").textContent="Un attimo, preparo il link… riprova tra un secondo.";sharePanel();return}
+  var L=SHLINK;copyText(L,function(ok){var lg=L.length>8000?" Il link è molto lungo: se Classroom lo taglia, usa il file.":"";
+    if(ok)$("shn").innerHTML="<b>Link copiato.</b> Incollalo nel compito di Classroom o su WhatsApp."+lg;else{$("shn").textContent="";showCopy("s","Copia questo link e incollalo dove vuoi:"+lg,L)}})}
+function shareFile(){showCopy("s","","");var text=JSON.stringify({app:"lavagna-coreografica",tipo:"condivisa",v:2,data:sharedCO()}),name=slug(CO.titolo)+"-ragazzi.json";
+  if(EMBED){showCopy("s","Nell'anteprima di Claude i file non si scaricano: dal file dell'app o dal sito questo pulsante crea il file da mandare. Ecco il contenuto, se vuoi copiarlo:",text);return}
+  try{var f=new File([text],name,{type:"application/json"});if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:CO.titolo||"Coreografia"}).catch(function(){});return}}catch(e){}
+  dl(name,text);$("shn").innerHTML="<b>File «"+esc(name)+"» scaricato.</b> Mandalo ai ragazzi (Classroom, WhatsApp, email): lo aprono nell'app con <b>Apri file</b>."}
+
+/* ---------- il mio percorso: la vista dei ragazzi ---------- */
+function enterDancer(data,kind){pause(true);if(data){var m=null;try{m=migra(cl(data))}catch(e){}if(!m){hint("Non riesco ad aprire questa coreografia.");return}CO=m;CO.condivisa=true}
+  MODE="dancer";DKIND=kind;document.body.classList.add("dmode");ME=null;try{ME=localStorage.getItem("dz-me:"+CO.id)}catch(e){}if(ME&&!bal(ME))ME=null;sel=ME;cur=0;undoS=[];
+  var v=null;try{v=localStorage.getItem("dz-vista-d")}catch(e){}setView(DESC[v]?v:"bal");all();if(kind=="shared")restoreMine();window.scrollTo(0,0)}
+function exitDancer(){pause(true);var k=DKIND;MODE="edit";DKIND=null;ME=null;sel=null;document.body.classList.remove("dmode");
+  if(k=="shared"){load();restoreMine()}var v=null;try{v=localStorage.getItem("dz-vista")}catch(e){}setView(DESC[v]?v:"pub");all();window.scrollTo(0,0)}
+function setMe(id){ME=id;sel=id;try{localStorage.setItem("dz-me:"+CO.id,id)}catch(e){}all()}
+function low(t){return t?t[0].toLowerCase()+t.slice(1):t}
+function cap(t){return t?t[0].toUpperCase()+t.slice(1):t}
+function sh(c){return"Otto "+(Math.floor(c/8)+1)+" · "+(Math.floor(c%8)+1)+(c%1>=.5?" e":"")}
+function dirW(a,z){var dx=z.x-a.x,dy=z.y-a.y,sd=Math.abs(dx)>.4?(dx>0?"verso destra palco":"verso sinistra palco"):"",dp=Math.abs(dy)>.4?(dy>0?"indietro":"avanti"):"";
+  if(sd&&dp)return"in diagonale "+dp+" "+sd;if(sd)return sd;if(dp)return dp=="avanti"?"in avanti, verso il pubblico":"indietro, verso il fondale";return"di poco"}
+function stepsFor(id){var F=FS(),out=[];F.forEach(function(f,k){var z=f.pos[id];if(!z)return;var a=k?F[k-1].pos[id]:null,du=k?Math.min(f.dur,f.c-F[k-1].c):0;
+  var mv=!!a&&(Math.hypot(a.x-z.x,a.y-z.y)>.15||!!a.fuori!=!!z.fuori),tn=!!a&&!mv&&(snapF(a.f)!=snapF(z.f)||a.liv!=z.liv);
+  if(k>0&&!mv&&!tn&&!f.nota)return;var t;
+  if(k==0)t=z.fuori?"Parti fuori scena, dietro la "+qname(z.via)+".":"Parti "+low(describe(z.x,z.y));
+  else if(!mv&&!tn)t="Resta dove sei.";else if(!mv)t="Resta sul posto.";
+  else if(a.fuori&&z.fuori)t="Resta fuori scena e spostati dietro la "+qname(z.via)+".";
+  else if(a.fuori)t="Entra dalla "+qname(a.via)+(z.curva?" con una curva":"")+" e vai "+low(describe(z.x,z.y));
+  else if(z.fuori)t="Esci dalla "+qname(z.via)+".";
+  else t="Vai "+dirW(a,z)+(z.curva?", con una curva":"")+": "+low(describe(z.x,z.y));
+  if(!z.fuori){var ex=[];if(k==0||mv||snapF(a.f)!=snapF(z.f))ex.push("Guarda "+FT[snapF(z.f)]);
+    if(z.liv!="piedi"&&(k==0||mv||a.liv!=z.liv))ex.push(cap(LIVT[z.liv]));else if(k>0&&a.liv!="piedi"&&z.liv=="piedi")ex.push("Torna in piedi");if(ex.length)t+=" "+ex.join(". ")+"."}
+  var st=k&&mv?f.c-du:f.c;out.push({k:k,c:f.c,st:st,when:k&&mv?sh(st)+" → "+sh(f.c)+" ("+du+(du==1?" tempo)":" tempi)"):sh(f.c),sec:(secAt(st)||{}).nome||"",t:t,nota:f.nota||""})});return out}
+function whoPanel(){if(MODE!="dancer")return;var b=ME&&bal(ME),h=b?'<div class="row sb"><h2>Sei '+esc(b.ini)+(b.nome?" · "+esc(b.nome):"")+'</h2><span class="note">Non sei tu? Tocca la tua sigla.</span></div>':'<h2>Chi sei?</h2><p class="note">Tocca la tua sigla: vedrai la tua pedina evidenziata e la scaletta dei tuoi spostamenti.</p>';
+  h+='<div class="who">'+CO.ballerini.map(function(x){var g=grp(x.gruppo);return'<button class="'+(x.id==ME?"on":"")+'" style="background:'+g.colore+';border-color:'+g.colore+';color:'+ink(g.colore)+'" onclick="setMe(\''+x.id+'\')"><span>'+esc(x.ini)+'</span>'+(x.nome?"<small>"+esc(x.nome)+"</small>":"")+'</button>'}).join("")+'</div>';$("dwho").innerHTML=h;
+  var t=CO.titolo||"Coreografia";$("dbart").innerHTML=DKIND=="preview"?"<b>Anteprima:</b> ecco cosa vedono i ragazzi quando aprono il tuo link o il tuo file.":"<b>"+esc(t)+"</b> · coreografia condivisa dall'insegnante";
+  $("dexit").hidden=DKIND!="preview";$("dcopy").hidden=DKIND!="shared"}
+function dstepsPanel(){if(MODE!="dancer")return;$("bprint").hidden=EMBED||!ME;$("dprn").textContent=EMBED&&ME?"La stampa della scheda funziona dal sito o dal file dell'app, non da questa anteprima.":"";
+  if(!ME){$("dstl").innerHTML='<p class="note">Scegli chi sei qui sopra.</p>';return}
+  $("dstl").innerHTML='<ol class="steps">'+stepsFor(ME).map(function(x){return'<li data-st="'+x.st+'"><button onclick="go('+x.c+')"><span class="when">'+esc(x.when)+'</span>'+(x.sec?'<span class="secl">'+esc(x.sec)+'</span>':'')+'<span>'+esc(x.t)+'</span>'+(x.nota?'<span class="nt">'+esc(x.nota)+'</span>':'')+'</button></li>'}).join("")+'</ol>';stepHi()}
+function stepHi(){if(MODE!="dancer")return;var li=document.querySelectorAll("#dstl li"),on=-1;li.forEach(function(e,i){if(+e.getAttribute("data-st")<=cur+1e-6)on=i});li.forEach(function(e,i){e.classList.toggle("on",i==on)})}
+function mini(k,id){var r=stageStr(),F=FS()[k],o='<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+r.vb+'">'+r.o;
+  if(k>0){var a=FS()[k-1].pos[id],z=F.pos[id];if(Math.hypot(a.x-z.x,a.y-z.y)>.15){var C=z.curva||{x:(a.x+z.x)/2,y:(a.y+z.y)/2};o+='<path class="trk on" style="stroke:#111" d="M'+T(a.x,a.y)+" Q"+T(C.x,C.y)+" "+T(z.x,z.y)+'"/><circle class="ghost" style="stroke:#111" cx="'+T(a.x,a.y)[0]+'" cy="'+T(a.x,a.y)[1]+'" r="'+R*.8+'"/>'}}
+  CO.ballerini.forEach(function(b){if(b.id!=id)o+=pedina(b,F.pos[b.id],false,true,true)});return o+pedina(bal(id),F.pos[id],true,true,false)+"</svg>"}
+function printScheda(){if(!ME)return;var b=bal(ME),h='<h1>'+esc(CO.titolo||"Coreografia")+'</h1><p><b>'+esc(b.ini)+(b.nome?" · "+esc(b.nome):"")+'</b> · '+(CO.musica.titolo?esc(CO.musica.titolo)+" · ":"")+String(CO.musica.bpm).replace(".",",")+' BPM · disegni in vista '+{pub:"pubblico",bal:"ballerino",spe:"specchio"}[vista]+'</p><div class="ps-grid">';
+  stepsFor(ME).forEach(function(x){h+='<div class="ps-item">'+mini(x.k,ME)+'<p><b>'+esc(x.when)+'</b>'+(x.sec?" · "+esc(x.sec):"")+'<br>'+esc(x.t)+(x.nota?'<br><i>'+esc(x.nota)+'</i>':'')+'</p></div>'});
+  $("pscheda").innerHTML=h+'</div>';try{window.print()}catch(e){}}
+function startMusic(){if(CO.esempio)loadExampleMusic();else restoreMine()}
+function save(){try{localStorage.setItem("dz-pref",JSON.stringify(PR));localStorage.setItem(MODE=="dancer"?"dz-vista-d":"dz-vista",vista)}catch(e){}
+  if(MODE=="dancer")return;try{localStorage.setItem("dz-coreo",JSON.stringify(CO))}catch(e){}libPut()}
+function snap(){undoS.push(JSON.stringify({CO:CO,cur:cur}));if(undoS.length>60)undoS.shift()}
+function undo(){if(!undoS.length)return;pause(true);var u=JSON.parse(undoS.pop());CO=u.CO;cur=u.cur;if(sel&&!bal(sel))sel=null;save();all()}
+
+function nid(){var i=1;while(bal("d"+i))i++;return"d"+i}
+function freeSpot(){var d=P().d,hw=P().w/2;for(var r=0;r<20;r++)for(var c=0;c<=r;c++)for(var s=-1;s<=1;s+=2){var x=s*c*.9,y=d*.4+(r-c)*.9;
+  if(Math.abs(x)>hw-.5||y>d-.5)continue;if(CO.ballerini.every(function(b){var p=cpos(b.id);return p.fuori||Math.hypot(p.x-x,p.y-y)>.85}))return[r1(x),r1(y)]}return[0,d/2]}
+function addB(g,ini,sil){if(!sil)snap();var id=nid(),n=CO.ballerini.length;
+  if(!ini){var L="ABCDEFGHIJKLMNOPQRSTUVZ";ini=L[n%L.length]+(n>=L.length?Math.floor(n/L.length)+1:"")}
+  var s=freeSpot();
+  CO.ballerini.push({id:id,nome:"",ini:ini,gruppo:g,cast:["A"]});CO.formazioni.forEach(function(F){F.pos[id]={x:s[0],y:s[1],f:0,liv:"piedi",fuori:false,via:null,curva:null}});
+  if(!sil){sel=id;save();all();if(window.innerWidth>=920){$("bi").focus();$("bi").select()}}}
+function addG(){snap();var L="ABCDEFGH",id=L.split("").find(function(c){return!CO.gruppi.some(function(g){return g.id==c})});if(!id)return;
+  var i=CO.gruppi.length,fs=Object.keys(FORME);CO.gruppi.push({id:id,nome:"Gruppo "+id,colore:PAL[i%PAL.length],forma:fs[i%fs.length]});save();all()}
+
+function setVia(p){var hw=P().w/2;p.fuori=Math.abs(p.x)>hw;p.via=p.fuori?(p.x>0?"dx":"sx")+qOf(p.y):null}
+function qOf(y){var d=P().d,n=P().quinte;return clamp(Math.ceil(Math.max(y,.001)/(d/n)),1,n)}
+function qname(v){return v?v.slice(2)+"ª quinta di "+(v[0]=="d"?"destra":"sinistra")+" palco":"quinta"}
+
+/* formazioni rapide: dispongono tutti i ballerini di una formazione, ordinati per gruppo */
+function dispose(t,sil,F){F=F||edF();if(!F)return;if(!sil)snap();var p=P(),hw=p.w/2,d=p.d,L=CO.ballerini.slice().sort(function(a,b){return a.gruppo<b.gruppo?-1:a.gruppo>b.gruppo?1:0}),n=L.length;if(!n)return;
+  var span=Math.min(p.w*.72,(n-1)*1.4),out=[];
+  if(t=="linea")L.forEach(function(b,i){out.push([n<2?0:-span/2+i*span/(n-1),d*.42,0])});
+  else if(t=="finestra"){var a=Math.ceil(n/2),gap=Math.min(1.6,p.w*.8/Math.max(a,1));L.forEach(function(b,i){var back=i>=a,k=back?i-a:i,m=back?n-a:a;out.push([(k-(m-1)/2)*gap+(back&&m==a?gap/2:0),back?d*.55:d*.3,0])})}
+  else if(t=="v"){L.forEach(function(b,i){var k=Math.ceil(i/2),s=i%2?1:-1;out.push([s*k*.9,d*.25+k*.75,0])})}
+  else if(t=="cerchio"){var rr=Math.min(p.w,d)*.3;L.forEach(function(b,i){var a2=2*Math.PI*i/n,x=rr*Math.sin(a2),y=d*.5-rr*Math.cos(a2),f=(Math.round(Math.atan2(-x,y-d*.5)*180/Math.PI/45)*45+360)%360;out.push([x,y,f])})}
+  else if(t=="quinte"){L.forEach(function(b,i){var s=i%2?1:-1,k=Math.floor(i/2),q=k%p.quinte+1,col=Math.floor(k/p.quinte);out.push([s*(hw+.75+col*.95),d*(q-.5)/p.quinte,s>0?270:90])})}
+  L.forEach(function(b,i){var o=F.pos[b.id],q=out[i];o.x=r1(clamp(q[0],-(hw+M-.45),hw+M-.45));o.y=r1(clamp(q[1],.3,d-.3));o.f=q[2];o.curva=null;setVia(o)});
+  if(!sil){save();all()}}
+
+/* ---------- formazioni ---------- */
+function addF(){pause(true);var F=FS(),i=fi(),c;
+  if(i<0)c=Math.round(cur*2)/2;
+  else{var nx=F[i+1];c=nx?(nx.c-F[i].c>=16?F[i].c+8:Math.round((F[i].c+nx.c))/2):F[i].c+8;
+    if(nx&&(c<=F[i].c+.4||c>=nx.c-.4)){hint("Non c'è spazio tra questa formazione e la successiva: sposta prima la successiva più avanti.");return}}
+  if(F.some(function(f){return Math.abs(f.c-c)<1e-6}))return go(c);
+  snap();var pv=F.filter(function(f){return f.c<c}).pop(),nf={c:c,dur:Math.min(4,c-pv.c),nota:"",pos:{}};
+  CO.ballerini.forEach(function(b){var p=cpos(b.id,c);nf.pos[b.id]={x:r1(p.x),y:r1(p.y),f:snapF(p.f),liv:p.liv,fuori:false,via:null,curva:null};setVia(nf.pos[b.id])});
+  F.push(nf);F.sort(byC);cur=c;CO.esempio=false;save();all();
+  hint("Formazione "+(F.indexOf(nf)+1)+" su "+lab(c)+": ora sposta i ragazzi dove devono arrivare.")}
+function delF(bt){var i=fi();if(i<=0)return;if(!bt.dataset.arm){bt.dataset.arm=1;bt.textContent="Confermi? Tocca di nuovo";setTimeout(function(){delete bt.dataset.arm;bt.textContent="Elimina formazione"},3000);return}
+  delete bt.dataset.arm;bt.textContent="Elimina formazione";snap();FS().splice(i,1);cur=FS()[i-1].c;save();all()}
+function setArrivo(){var i=fi();if(i<=0)return;var F=FS(),o=parseInt($("fo").value,10),t=parseFloat($("ftp").value);if(isNaN(o))return;
+  var c=(o-1)*8+t,lo=F[i-1].c+.5,hi=F[i+1]?F[i+1].c-.5:9999;
+  if(c<lo||c>hi){hint("La formazione "+(i+1)+" deve stare tra la "+i+(F[i+1]?" e la "+(i+2):"")+". Per scambiarle d'ordine eliminala e ricreala nel punto giusto.");c=clamp(c,lo,hi)}
+  snap();F[i].c=c;cur=c;save();all()}
+function go(c){pause(true);cur=clamp(c,0,LEN());refresh()}
+function navF(d){var F=FS(),i=fi(),k;if(d<0){k=-1;F.forEach(function(f,j){if(f.c<cur-1e-6)k=j})}else k=nextIdx(cur);if(k>=0)go(F[k].c)}
+
+/* ---------- sezioni ---------- */
+function addSez(){var da=Math.floor(cur/8)*8;if(CO.sezioni.some(function(s){return s.da==da})){hint("C'è già una sezione che parte dall'otto "+(da/8+1)+".");return}
+  snap();CO.sezioni.push({nome:NOMI[Math.min(CO.sezioni.length,NOMI.length-1)],da:da});normS(CO);save();all()}
+function sset(k,f,v){snap();var s=CO.sezioni[k];if(f=="nome")s.nome=v.trim()||s.nome;else{var o=parseInt(v,10);if(!isNaN(o)&&o>=1)s.da=(o-1)*8}normS(CO);save();all()}
+function sdel(k){snap();CO.sezioni.splice(k,1);normS(CO);save();all()}
+
+/* ---------- disegno: i dati sono in metri di palco, le viste cambiano solo il disegno ---------- */
+function T(x,y){var sx=vista=="pub"?-x:x,sy=vista=="bal"?y:P().d-y;return[sx*K,sy*K]}
+function inv(SX,SY){var sx=SX/K,sy=SY/K;return[vista=="pub"?-sx:sx,vista=="bal"?sy:P().d-sy]}
+function dirS(f){var a=f*Math.PI/180,vx=Math.sin(a),vy=-Math.cos(a);return[vista=="pub"?-vx:vx,vista=="bal"?vy:-vy]}
+function R_(x1,y1,x2,y2,c){var a=T(x1,y1),b=T(x2,y2);return'<rect class="'+c+'" x="'+Math.min(a[0],b[0])+'" y="'+Math.min(a[1],b[1])+'" width="'+Math.abs(a[0]-b[0])+'" height="'+Math.abs(a[1]-b[1])+'"/>'}
+function L_(x1,y1,x2,y2,c){var a=T(x1,y1),b=T(x2,y2);return'<line class="'+c+'" x1="'+a[0]+'" y1="'+a[1]+'" x2="'+b[0]+'" y2="'+b[1]+'"/>'}
+function X_(x,y,s,c){var a=T(x,y);return'<text class="'+c+'" x="'+a[0]+'" y="'+a[1]+'">'+s+'</text>'}
+function C_(x,y,r,c){var a=T(x,y);return'<circle class="'+c+'" cx="'+a[0]+'" cy="'+a[1]+'" r="'+r*K+'"/>'}
+
+function shape(forma,x,y,r,fill){var st=' fill="'+fill+'" stroke="#fff" stroke-width="'+(r/9).toFixed(1)+'" stroke-linejoin="round"';
+  if(forma=="quadrato")return'<rect x="'+(x-r*.86)+'" y="'+(y-r*.86)+'" width="'+r*1.72+'" height="'+r*1.72+'" rx="'+r*.18+'"'+st+'/>';
+  if(forma=="triangolo")return'<polygon points="'+x+","+(y-r*1.2)+" "+(x+r*1.12)+","+(y+r*.78)+" "+(x-r*1.12)+","+(y+r*.78)+'"'+st+'/>';
+  if(forma=="rombo")return'<polygon points="'+x+","+(y-r*1.2)+" "+(x+r*1.2)+","+y+" "+x+","+(y+r*1.2)+" "+(x-r*1.2)+","+y+'"'+st+'/>';
+  return'<circle cx="'+x+'" cy="'+y+'" r="'+r+'"'+st+'/>'}
+function nose(x,y,r,f,fill){var v=dirS(f),px=-v[1],py=v[0],t=[x+v[0]*r*1.75,y+v[1]*r*1.75],b=[x+v[0]*r*1.05,y+v[1]*r*1.05];
+  return'<polygon points="'+t+" "+(b[0]+px*r*.55)+","+(b[1]+py*r*.55)+" "+(b[0]-px*r*.55)+","+(b[1]-py*r*.55)+'" fill="'+fill+'" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>'}
+function pedina(b,p,isSel,lock,dim){var g=grp(b.gruppo),col=fillOf(b,p),a=T(p.x,p.y),x=a[0],y=a[1],s="";
+  if(isSel)s+='<circle class="ring" cx="'+x+'" cy="'+y+'" r="'+R*1.95+'"/>';
+  s+=nose(x,y,R,p.f,col)+shape(g.forma,x,y,R,col);
+  var t=String(b.ini||"?"),fs=t.length<=2?R*.82:R*.6;
+  s+='<text x="'+x+'" y="'+(y+(g.forma=="triangolo"?R*.2:0))+'" font-size="'+fs+'" fill="'+ink(col)+'">'+esc(t)+'</text>';
+  if(LB[p.liv])s+='<circle class="badge" cx="'+(x+R*.95)+'" cy="'+(y-R*.95)+'" r="17"/><text class="btxt" font-size="'+(LB[p.liv].length>1?17:22)+'" x="'+(x+R*.95)+'" y="'+(y-R*.95)+'">'+LB[p.liv]+'</text>';
+  return'<g class="dn'+(p.fuori?" offd":"")+(lock?" lock":"")+(dim?" dim":"")+'" data-id="'+b.id+'">'+s+'</g>'}
+
+function stageStr(){
+  var p=P(),w=p.w,d=p.d,n=p.quinte,hw=w/2,front=1.9,back=.9,s=step(),o="";
+  var ya=T(0,-front)[1],yb=T(0,d+back)[1];
+  var vb=(-(hw+M)*K)+" "+Math.min(ya,yb)+" "+((w+2*M)*K)+" "+Math.abs(ya-yb);
+  o+=R_(-hw-M+.15,-front+.1,hw+M-.15,-.25,"aud");
+  for(var r=0;r<2;r++)for(var sx=-hw+.4;sx<=hw-.3;sx+=.65)o+=C_(sx,-.78-r*.36,.13,"seat");
+  o+=X_(0,-front+.36,"PUBBLICO","big")+X_(0,-.42,"PROSCENIO","small");
+  [1,-1].forEach(function(g){o+=R_(g*(hw+.15),0,g*(hw+M-.2),d,"off")});
+  o+=R_(-hw,0,hw,d,"floor");
+  if(p.griglia){for(var k=1;k*s<hw-.05;k++)o+=L_(k*s,0,k*s,d,"gridl")+L_(-k*s,0,-k*s,d,"gridl");
+    for(var yy=1;yy<d-.05;yy++)o+=L_(-hw,yy,hw,yy,"gridl")+X_(-(hw-.38),yy-.18,yy+" m","depf")}
+  o+=L_(0,0,0,d,"center")+L_(-.22,d/2,.22,d/2,"cross")+L_(0,d/2-.22,0,d/2+.22,"cross");
+  if(p.numeri)for(k=0;k*s<=hw-.15;k++)[1,-1].forEach(function(g){if(k==0&&g<0)return;o+=L_(g*k*s,0,g*k*s,.28,"tick")+X_(g*k*s,.6,String(k*2),"num")});
+  o+=R_(-hw-.15,d,hw+.15,d+.2,"cyc")+L_(-hw,0,hw,0,"edge");
+  [1,-1].forEach(function(g){o+=R_(g*hw,-.18,g*(hw+M-.2),.06,"wing")});
+  for(k=1;k<=n;k++){var yk=d*k/n,ye=d*(k-.5)/n;[1,-1].forEach(function(g){o+=R_(g*(hw+.2),yk-.24,g*(hw+1.75),yk,"wing")+X_(g*(hw+2.25),ye-.12,k+"ª","qn")+X_(g*(hw+2.25),ye+.26,(g>0?"DX":"SX")+k,"qs")})}
+  o+=X_(hw+.95,-front+.36,"DESTRA PALCO","side")+X_(-(hw+.95),-front+.36,"SINISTRA PALCO","side");
+  o+=X_(0,d+.55,"FONDALE · "+fmt(w).replace(",0","")+" × "+fmt(d).replace(",0","")+" m","small");
+  [1,-1].forEach(function(g){o+=X_(g*(hw+M/2),d+.55,"FUORI SCENA","small")});
+  return{vb:vb,o:o}}
+function renderStage(){var r=stageStr();svg.setAttribute("viewBox",r.vb);$("bgL").innerHTML=r.o}
+/* percorsi: da dove arrivano i ragazzi (cerchio tratteggiato) e che strada fanno */
+function paths(){var i=fi(),k=i>=0?i:nextIdx(cur);if(k<=0)return"";var A=FS()[k-1],B=FS()[k],o="",h="";
+  CO.ballerini.forEach(function(b){if(MODE=="dancer"&&b.id!=ME)return;var a=A.pos[b.id],z=B.pos[b.id];if(!a||!z)return;if(Math.hypot(a.x-z.x,a.y-z.y)<.15&&!z.curva)return;
+    var on=b.id==sel,col=on?"var(--spike)":fillOf(b,z),C=z.curva||{x:(a.x+z.x)/2,y:(a.y+z.y)/2},p1=T(a.x,a.y),pc=T(C.x,C.y),p2=T(z.x,z.y);
+    o+='<path class="trk'+(on?" on":"")+'" style="stroke:'+col+'" d="M'+p1+" Q"+pc+" "+p2+'"/><circle class="ghost" style="stroke:'+col+'" cx="'+p1[0]+'" cy="'+p1[1]+'" r="'+R*.8+'"/>';
+    if(on&&i>0&&MODE!="dancer"){var q=T(.25*a.x+.5*C.x+.25*z.x,.25*a.y+.5*C.y+.25*z.y);h='<circle class="hdl" data-h="'+b.id+'" cx="'+q[0]+'" cy="'+q[1]+'" r="30"/>'}});
+  return o+h}
+function renderFg(){var dm=MODE=="dancer",o="",lock=fi()<0||!!playing||dm;if(PR.showP&&!playing)o+=paths();
+  CO.ballerini.forEach(function(b){if(b.id!=sel)o+=pedina(b,cpos(b.id),false,lock,dm&&!!ME)});
+  if(sel&&bal(sel))o+=pedina(bal(sel),cpos(sel),true,lock,false);$("fgL").innerHTML=o}
+
+/* ---------- barra dei conteggi ---------- */
+function tl(){var L=LEN(),W=L*CW+28,o="",F=FS(),S=CO.sezioni,i;
+  for(i=0;i<L/8;i++){var x=i*8*CW;o+='<rect class="oc'+(i%2)+'" x="'+x+'" y="22" width="'+8*CW+'" height="98"/><text class="ol" x="'+(x+4)+'" y="37">'+(i+1)+'</text>';
+    for(var j=1;j<8;j++)o+='<line class="bt" x1="'+(x+j*CW)+'" y1="'+(j==4?42:47)+'" x2="'+(x+j*CW)+'" y2="54"/>'}
+  S.forEach(function(s,k){var a=s.da*CW,b=(k+1<S.length?S[k+1].da:L)*CW;o+='<g data-s="'+k+'"><rect class="sb'+(k%2)+'" x="'+(a+1)+'" y="2" width="'+Math.max(4,b-a-3)+'" height="18" rx="4"/><text class="st" x="'+(a+7)+'" y="15">'+esc(s.nome.toUpperCase())+'</text></g>'});
+  if(PEAKS){var dp="";for(var px=0;px<=L*CW;px+=2){var kk=Math.floor(secOf(px/CW)*100),v=kk>=0&&kk<PEAKS.length?PEAKS[kk]:0;if(v>.02){var hh=Math.max(.6,v*14);dp+="M"+px+" "+(104-hh).toFixed(1)+"V"+(104+hh).toFixed(1)}}o+='<path class="wave" d="'+dp+'"/>'}
+  F.forEach(function(f,k){var dur=k?Math.min(f.dur,f.c-F[k-1].c):0,x=f.c*CW;if(dur>0)o+='<rect class="tr" x="'+(x-dur*CW)+'" y="62" width="'+dur*CW+'" height="16" rx="8"/>'});
+  F.forEach(function(f,k){var x=f.c*CW;o+='<g class="fm'+(Math.abs(f.c-cur)<1e-6?" on":"")+'" data-f="'+k+'"><circle cx="'+x+'" cy="70" r="13"/><text x="'+x+'" y="70">'+(k+1)+'</text></g>'});
+  o+='<line id="ph" class="ph" x1="0" y1="22" x2="0" y2="120"/>';
+  svgT.setAttribute("width",W);svgT.setAttribute("viewBox","-14 0 "+W+" 120");svgT.innerHTML=o;ph()}
+function ph(){stepHi();var l=$("ph"),x=cur*CW;if(l){l.setAttribute("x1",x);l.setAttribute("x2",x)}
+  var w=$("tlw");if(playing&&w&&(x<w.scrollLeft+20||x>w.scrollLeft+w.clientWidth-60))w.scrollLeft=x-60;
+  var s=secAt(cur);$("clk").textContent=Lab(cur).replace(", "," · ");$("csec").textContent=(s?s.nome+" · ":"")+mmss(cur);
+  var F=edF(),k=F?fi():nextIdx(cur),nt=F?F.nota:"";$("fnote").hidden=!nt;if(nt)$("fnote").innerHTML="<b>Formazione "+(k+1)+"</b> · "+esc(nt)}
+svgT.addEventListener("click",function(e){var g=e.target.closest("[data-f]");if(g)return go(FS()[+g.getAttribute("data-f")].c);
+  g=e.target.closest("[data-s]");if(g)return go(CO.sezioni[+g.getAttribute("data-s")].da);
+  var p=svgT.createSVGPoint();p.x=e.clientX;p.y=e.clientY;var q=p.matrixTransform(svgT.getScreenCTM().inverse()),c=clamp(Math.round(q.x/CW*2)/2,0,LEN());
+  FS().forEach(function(f){if(Math.abs(f.c-c)<=.5)c=f.c});go(c)});
+
+/* ---------- musica: il brano resta su questo dispositivo, mai nel link né nei file ---------- */
+var MUS=null,AUD=null,BUF=null,PEAKS=null,WA=null,TAPS=[];
+function secOf(c){return(CO.musica.offset||0)+c*60/CO.musica.bpm}
+function cOf(s){return(s-(CO.musica.offset||0))*CO.musica.bpm/60}
+function mm(sec){sec=Math.max(0,sec);return Math.floor(sec/60)+":"+String(Math.floor(sec%60)).padStart(2,"0")}
+function idb(){return new Promise(function(res,rej){try{var r=indexedDB.open("dz-lavagna",1);r.onupgradeneeded=function(){r.result.createObjectStore("f")};r.onsuccess=function(){res(r.result)};r.onerror=function(){rej(r.error)}}catch(e){rej(e)}})}
+function idbDo(mode,fn){return idb().then(function(db){return new Promise(function(res,rej){var tx=db.transaction("f",mode),rq=fn(tx.objectStore("f"));tx.oncomplete=function(){res(rq&&rq.result)};tx.onerror=function(){rej(tx.error)}})})}
+function decode(buf){return new Promise(function(res,rej){var O=window.OfflineAudioContext||window.webkitOfflineAudioContext,ctx;if(!O)return rej(new Error("no audio"));
+  try{ctx=new O(2,1,22050)}catch(e){try{ctx=new O(2,1,44100)}catch(e2){return rej(e2)}}
+  try{var q=ctx.decodeAudioData(buf,res,rej);if(q&&q.then)q.then(res,rej)}catch(e){rej(e)}})}
+function peaks(b){var n=Math.ceil(b.duration*100),out=new Float32Array(n),ch=[],mx=0;for(var i=0;i<b.numberOfChannels&&i<2;i++)ch.push(b.getChannelData(i));
+  var w=Math.max(1,Math.floor(b.sampleRate/100));for(var k=0;k<n;k++){var m=0,a=k*w,e=Math.min(a+w,ch[0].length);for(var j=a;j<e;j+=3)for(var q=0;q<ch.length;q++){var v=ch[q][j];if(v<0)v=-v;if(v>m)m=v}out[k]=m;if(m>mx)mx=m}
+  if(mx>0)for(k=0;k<n;k++)out[k]/=mx;return out}
+function loadMusic(blob,name,persist){pause(true);unloadMusic(true);MUS={name:name||"brano",dur:0,el:true,ready:false};
+  try{AUD=new Audio();AUD.preload="auto";AUD.src=URL.createObjectURL(blob);
+    AUD.addEventListener("loadedmetadata",function(){if(MUS&&isFinite(AUD.duration)){MUS.dur=AUD.duration;mpanel();tl()}});
+    AUD.addEventListener("error",function(){if(MUS)MUS.el=false})}catch(e){MUS.el=false}
+  (blob.arrayBuffer?blob.arrayBuffer():new Response(blob).arrayBuffer()).then(decode).then(function(b){if(!MUS)return;BUF=b;PEAKS=peaks(b);if(!MUS.dur)MUS.dur=b.duration;MUS.ready=true;
+      CO.musica.durata=Math.round(MUS.dur*10)/10;save();mpanel();tl()})
+    .catch(function(){if(MUS){MUS.ready=true;mpanel();if(!MUS.el)mnote("Non riesco a leggere questo file audio. Prova con un MP3 o un M4A.")}});
+  if(MODE!="dancer"&&CO.musica.titolo!==MUS.name){CO.musica.titolo=MUS.name;save()}
+  if(persist)idbDo("readwrite",function(st){return st.put({blob:blob,name:MUS.name},"brano:"+CO.id)}).catch(function(){});
+  mpanel();tl()}
+function unloadMusic(keep){plStop();if(AUD){try{URL.revokeObjectURL(AUD.src)}catch(e){}}MUS=AUD=BUF=PEAKS=null;
+  if(!keep){var id=CO.id;idbDo("readwrite",function(st){return st.delete("brano:"+id)}).catch(function(){})}}
+function plStart(s,rate){if(!MUS)return;
+  if(MUS.el&&AUD){try{AUD.currentTime=s;AUD.playbackRate=rate;var q=AUD.play();if(q&&q.catch)q.catch(function(){if(!MUS)return;MUS.el=false;if(playing)plWA(songNow(),rate)});return}catch(e){MUS.el=false}}
+  plWA(s,rate)}
+function plWA(s,rate){if(!BUF||!ac())return;try{var src=AC.createBufferSource();src.buffer=BUF;src.playbackRate.value=rate;src.connect(AC.destination);src.start(0,Math.max(0,s));WA={src:src,t0:AC.currentTime,s0:s,rate:rate}}catch(e){WA=null}}
+function plTime(){if(WA&&AC&&AC.state=="running")return WA.s0+(AC.currentTime-WA.t0)*WA.rate;if(MUS&&MUS.el&&AUD&&!AUD.paused)return AUD.currentTime;return null}
+function plStop(){if(AUD)try{AUD.pause()}catch(e){}if(WA){try{WA.src.stop()}catch(e){}WA=null}}
+function mnote(h){$("mnote").hidden=!h;$("mnote").innerHTML=h||""}
+function mpanel(){var t=CO.musica.titolo,dm=MODE=="dancer";$("mrem").hidden=!MUS;$("mlbl").textContent=MUS?"Cambia brano":dm&&t?"♪ Carica «"+t+"»":"♪ Carica il brano";
+  if(dm&&!MUS){$("mtit").innerHTML=t?"La coreografia è montata su <b>"+esc(t)+"</b>. Caricalo dal tuo telefono per ballare con la musica; senza brano senti il metronomo.":"Nessun brano: l'animazione segue il metronomo.";return}
+  $("mtit").innerHTML=MUS?"♪ <b>"+esc(MUS.name)+"</b>"+(MUS.dur?" · "+mm(MUS.dur):"")+(MUS.ready?"":" · sto leggendo il brano…")
+    +(MUS&&MUS.esempio?" · <span class=\"note\">musica originale creata dall'app, libera da diritti</span>":"")
+    :t?"Questa coreografia è montata su <b>"+esc(t)+"</b>. Caricalo dal tuo dispositivo per sentirlo.":"Nessun brano caricato: l'animazione segue il metronomo."}
+function tap(){var t=performance.now();if(TAPS.length&&t-TAPS[TAPS.length-1]>2000)TAPS=[];TAPS.push(t);if(TAPS.length>16)TAPS.shift();
+  var b=$("btap");b.classList.add("on");setTimeout(function(){b.classList.remove("on")},90);
+  if(TAPS.length<4){mnote("Continua a battere a tempo… ("+TAPS.length+(TAPS.length==1?" colpo)":" colpi)"));return}
+  var iv=[];for(var i=1;i<TAPS.length;i++)iv.push(TAPS[i]-TAPS[i-1]);iv.sort(function(a,b){return a-b});
+  var bpm=clamp(Math.round(120000/iv[iv.length>>1])/2,40,220);if(TAPS.length==4)snap();CO.musica.bpm=bpm;save();fill();tl();
+  mnote(TAPS.length+" colpi → <b>"+String(bpm).replace(".",",")+" BPM</b>. Più colpi batti, più è preciso. Fermati per 2 secondi per ricominciare da capo.")}
+function setOff(v){CO.musica.offset=Math.max(0,Math.round(v*100)/100);save();fill();tl()}
+function markAttacco(){if(!playing||!MUS){mnote("Prima carica il brano e premi <b>▶ Play</b>, poi tocca <b>Segna l'attacco ora</b> esattamente quando i ragazzi contano «1».");return}
+  var s=songNow();if(s<0)return;snap();setOff(s);var c=cOf(s);playing.c0=-1e9;playing.prev=c;playing.next=Math.ceil(c-1e-6);
+  mnote("Attacco segnato a <b>"+String(CO.musica.offset).replace(".",",")+" s</b>: lì parte l'otto 1, tempo 1. Se è un po' in anticipo o in ritardo, correggi con i pulsanti ±.")}
+
+/* ---------- brano di esempio: musica originale generata dall'app, libera da diritti ---------- */
+function exampleSong(){var O=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!O)return Promise.reject(new Error("no audio"));
+  var sr=22050,b=.5,off=2,len=off+64*b+3.2,ctx;try{ctx=new O(2,Math.ceil(len*sr),sr)}catch(e){sr=44100;ctx=new O(2,Math.ceil(len*sr),sr)}
+  var comp=ctx.createDynamicsCompressor();comp.connect(ctx.destination);var mst=ctx.createGain();mst.gain.value=.7;mst.connect(comp);
+  var nb=ctx.createBuffer(1,sr,sr),nd=nb.getChannelData(0);for(var i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+  function noise(t,dur,f,type,g){var x=ctx.createBufferSource();x.buffer=nb;var fl=ctx.createBiquadFilter();fl.type=type;fl.frequency.value=f;var gn=ctx.createGain();gn.gain.setValueAtTime(g,t);gn.gain.exponentialRampToValueAtTime(.001,t+dur);x.connect(fl);fl.connect(gn);gn.connect(mst);x.start(t);x.stop(t+dur+.02)}
+  function kick(t){var o=ctx.createOscillator(),g=ctx.createGain();o.frequency.setValueAtTime(130,t);o.frequency.exponentialRampToValueAtTime(42,t+.14);g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.32);o.connect(g);g.connect(mst);o.start(t);o.stop(t+.35)}
+  function tone(t,dur,f,type,g,cut){var o=ctx.createOscillator(),gn=ctx.createGain(),fl=ctx.createBiquadFilter();o.type=type;o.frequency.value=f;fl.type="lowpass";fl.frequency.value=cut||2000;
+    gn.gain.setValueAtTime(.0001,t);gn.gain.linearRampToValueAtTime(g,t+.02);gn.gain.setValueAtTime(g,t+dur*.7);gn.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(fl);fl.connect(gn);gn.connect(mst);o.start(t);o.stop(t+dur+.02)}
+  function hz(m){return 440*Math.pow(2,(m-69)/12)}
+  var prog=[[48,[60,64,67]],[45,[57,60,64]],[41,[57,60,65]],[43,[55,59,62]]];
+  for(var k=-4;k<0;k++)noise(off+k*b,.05,8000,"highpass",.3);
+  for(var c=0;c<64;c++){var t=off+c*b,ch=prog[Math.floor(c/4)%4],sec=c<16?0:c<32?1:c<48?2:3;
+    if(c%4==0)ch[1].forEach(function(m){tone(t,4*b,hz(m),"sawtooth",sec==0?.03:.04,sec>=2?2600:1400)});
+    if(c%8==0)noise(t,sec==0?.6:1.1,3500,"highpass",sec==0?.12:.22);
+    noise(t+b/2,.04,8000,"highpass",.07);if(sec>0)noise(t,.04,8000,"highpass",.1);
+    if(sec>0){if(c%2==0||sec>=2)kick(t);if(c%2==1)noise(t,.16,1800,"highpass",.35);tone(t,b*.9,hz(ch[0]),"triangle",.24,900);if(sec>=2)tone(t+b/2,b*.45,hz(ch[0]),"triangle",.16,900)}
+    else if(c%4==0)kick(t);
+    if(sec>=2){tone(t,b*.45,hz(ch[1][c%3]+12),"square",.035,3000);tone(t+b/2,b*.45,hz(ch[1][(c+1)%3]+12),"square",.035,3000)}
+    if(c>=60)noise(t+b/2,.1,1500,"bandpass",.3)}
+  var te=off+64*b;kick(te);noise(te,2.5,3000,"highpass",.3);[48,60,64,67,72].forEach(function(m){tone(te,2.8,hz(m),"sawtooth",.05,2200)});
+  return new Promise(function(res,rej){ctx.oncomplete=function(e){res(e.renderedBuffer)};try{var q=ctx.startRendering();if(q&&q.then)q.then(res,rej)}catch(e){rej(e)}})}
+function wav(buf){var ch=Math.min(2,buf.numberOfChannels),n=buf.length,sr=buf.sampleRate,ab=new ArrayBuffer(44+n*ch*2),v=new DataView(ab);
+  function w(o,t){for(var i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i))}
+  w(0,"RIFF");v.setUint32(4,36+n*ch*2,true);w(8,"WAVE");w(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,ch,true);v.setUint32(24,sr,true);v.setUint32(28,sr*ch*2,true);v.setUint16(32,ch*2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,n*ch*2,true);
+  var d=[],o=44,c;for(c=0;c<ch;c++)d.push(buf.getChannelData(c));for(var i=0;i<n;i++)for(c=0;c<ch;c++){var x=Math.max(-1,Math.min(1,d[c][i]));v.setInt16(o,x<0?x*32768:x*32767,true);o+=2}
+  return new Blob([ab],{type:"audio/wav"})}
+function isEx(){return CO.esempio||CO.musica.titolo=="Brano di esempio"}
+function loadExampleMusic(){if(!isEx())return;var id=CO.id;exampleSong().then(function(b){if(!isEx()||CO.id!=id)return;loadMusic(wav(b),"Brano di esempio",false);MUS.esempio=true;mpanel()}).catch(function(){})}
+function restoreMine(){unloadMusic(true);mpanel();tl();var id=CO.id;
+  idbDo("readonly",function(st){return st.get("brano:"+id)}).then(function(v){if(CO.id!=id||MUS)return;if(v&&v.blob){loadMusic(v.blob,v.name,false);return}
+    if(isEx()){loadExampleMusic();return}
+    return idbDo("readonly",function(st){return st.get("brano")}).then(function(w){if(CO.id==id&&!MUS&&w&&w.blob&&w.name==CO.musica.titolo)loadMusic(w.blob,w.name,true)})}).catch(function(){if(isEx())loadExampleMusic()})}
+
+/* ---------- riproduzione: un solo orologio, in secondi del brano ---------- */
+function ac(){try{if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(C)AC=new C()}if(AC&&AC.state=="suspended")AC.resume()}catch(e){AC=null}return AC}
+function nowP(){return performance.now()/1000}
+function songNow(){var p=playing;return p?p.s+(nowP()-p.p)*p.rate:secOf(cur)}
+function beep(tp,acc){if(!AC||AC.state!="running"||tp<nowP()-.05)return;try{var t=AC.currentTime+Math.max(0,tp-nowP()),o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=acc==2?1760:acc==1?1175:880;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(acc?.55:.32,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+.07);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.09)}catch(e){}}
+function endC(){var F=FS(),l=F[F.length-1].c;return MUS&&MUS.dur?Math.max(l,cOf(MUS.dur)):l}
+function play(){if(playing)return pause();var F=FS();
+  if(F.length<2&&!MUS){tmsg("Per vedere il movimento servono almeno <b>2 formazioni</b>. Nel riquadro <b>Formazione</b> tocca <b>+ Formazione dopo questa</b>, trascina i ragazzi nelle nuove posizioni, poi torna qui e premi Play. Oppure apri l'esempio qui sotto.");$("exrow").hidden=false;return}
+  tmsg("");if(cur>=endC()-1e-6)cur=0;if(PR.cin)cur=Math.floor(cur);
+  if(PR.met||PR.cin||(MUS&&!MUS.el))ac();
+  var rate=PR.speed,pre=PR.cin?4:0,s=secOf(cur-pre);
+  playing={s:s,p:nowP()+.1,rate:rate,c0:cur,prev:cur,next:Math.ceil(cur-pre-1e-6),aud:false,stopAt:null};
+  if(MUS&&MUS.dur){if(s>=0&&s<MUS.dur){playing.aud=true;playing.p=nowP();plStart(s,rate)}
+    else if(MUS.el&&AUD&&AUD.paused){AUD.muted=true;try{var q=AUD.play();if(q&&q.then)q.then(function(){if(!playing||!playing.aud)AUD.pause();AUD.muted=false},function(){AUD.muted=false})}catch(e){AUD.muted=false}}}
+  $("bpl").textContent="❚❚ Pausa";renderFg();requestAnimationFrame(tick);
+  if(PR.met&&!MUS)setTimeout(function(){if(playing&&(!AC||AC.state!="running"))tmsg("L'animazione va, ma il metronomo non si sente. Se sei su iPhone controlla che il tasto laterale del silenzioso sia spento e alza il volume.")},900)}
+function pause(silent){var p=playing;if(!p)return;var c=cOf(songNow());playing=null;plStop();$("ci").hidden=true;$("bpl").textContent="▶ Play";
+  if(c<p.c0)c=p.c0;cur=p.stopAt!=null?p.stopAt:clamp(Math.round(c*2)/2,0,Math.max(endC(),0));FS().forEach(function(f){if(Math.abs(f.c-cur)<=.25)cur=f.c});if(!silent)refresh()}
+function tick(){var p=playing;if(!p)return;var s=songNow();
+  if(MUS&&MUS.dur){if(!p.aud&&s>=0&&s<MUS.dur){p.aud=true;plStart(s,p.rate)}
+    else if(p.aud){var at=plTime();if(at!=null&&at>.05&&Math.abs(at-s)>.06){p.s=at;p.p=nowP();s=at}}}
+  var c=cOf(s),E=endC();
+  for(var guard=0;guard<64;guard++){var b=p.next,tp=p.p+(secOf(b)-p.s)/p.rate;if(tp>=nowP()+.12||b>E)break;
+    if(b<p.c0)beep(tp,1);else if(PR.met)beep(tp,((b%8)+8)%8==0?2:0);p.next++}
+  if(c<p.c0-1e-6){var n=Math.floor(c-(p.c0-4));$("ci").hidden=n<0||n>3;$("ci").textContent=5+n;$("clk").textContent="Pronti…";requestAnimationFrame(tick);return}
+  $("ci").hidden=true;
+  if(PR.stopF){var hit=null;FS().forEach(function(f){if(hit==null&&f.c>p.prev+1e-6&&f.c<=c+1e-6&&f.c>p.c0+1e-6)hit=f.c});if(hit!=null){p.stopAt=hit;pause();return}}
+  p.prev=c;cur=clamp(c,0,E);renderFg();ph();if(sel)readSel();
+  if(c>=E){pause();return}requestAnimationFrame(tick)}
+
+/* ---------- testi ---------- */
+function describe(x,y){var hw=P().w/2,d=P().d,s=step(),q=qOf(y);
+  if(y<0)return"Fuori dal palco, verso il pubblico.";if(y>d)return"Dietro il fondale.";
+  if(Math.abs(x)>hw)return"Fuori scena, dietro le quinte di "+(x>0?"destra":"sinistra")+" palco, all'altezza della "+q+"ª quinta.";
+  var k=Math.round(Math.abs(x)/s),lat=k==0?"Al centro (numero 0)":"Sul numero "+(k*2)+" "+(x>0?"destra":"sinistra")+" palco";
+  return lat+", "+(y<d/3?"in avanti, vicino al proscenio":y<2*d/3?"a metà palco":"in fondo, verso il fondale")+", all'altezza della "+q+"ª quinta."}
+function readSel(){if(!sel||!bal(sel))return;var b=bal(sel),p=cpos(sel),i=fi(),t=b.ini+(b.nome?" ("+b.nome+")":"")+" · ";
+  if(p.mov){var k=nextIdx(cur);t+="In movimento verso la formazione "+(k+1)+". "}
+  t+=describe(p.x,p.y);if(!p.fuori&&!p.mov)t+=" Guarda "+FT[snapF(p.f)]+", "+LIVT[p.liv]+".";
+  if(i>0&&!playing){var a=FS()[i-1].pos[sel],z=FS()[i].pos[sel];if(a.fuori&&!z.fuori)t+=" Entra dalla "+qname(a.via)+".";else if(!a.fuori&&z.fuori)t+=" Esce dalla "+qname(z.via)+"."}
+  $("rtxt").textContent=t}
+
+/* ---------- pannelli ---------- */
+function legend(){var h="",lv=CO.colori=="livello";CO.gruppi.forEach(function(g){if(!CO.ballerini.some(function(b){return b.gruppo==g.id}))return;
+  h+='<span><svg width="22" height="22" viewBox="-30 -30 60 60" aria-hidden="true">'+shape(g.forma,0,0,20,lv?"#8f8890":g.colore)+'</svg>'+esc(g.nome)+'</span>'});
+  if(lv)LIV.forEach(function(l){h+='<span><svg width="18" height="18" viewBox="-30 -30 60 60" aria-hidden="true">'+shape("cerchio",0,0,24,LCOL[l[0]])+'</svg>'+l[1]+'</span>'});
+  h+='<span><b style="color:var(--ink)">▲</b> punta = sguardo</span><span><b style="color:var(--ink)">SD</b> seduto · <b style="color:var(--ink)">T</b> a terra · <b style="color:var(--ink)">S</b> salto · <b style="color:var(--ink)">P</b> presa</span><span>◌ da dove arriva</span>';$("leg").innerHTML=h}
+function company(){var h="";CO.gruppi.forEach(function(g,gi){var bs=CO.ballerini.filter(function(b){return b.gruppo==g.id});
+  h+='<div class="grp"><div class="ghead"><input type="color" value="'+g.colore+'" aria-label="Colore di '+esc(g.nome)+'" onchange="gset('+gi+',\'colore\',this.value)"><input type="text" id="gn'+gi+'" value="'+esc(g.nome)+'" maxlength="24" aria-label="Nome del gruppo" onchange="gset('+gi+',\'nome\',this.value)"><select aria-label="Forma" onchange="gset('+gi+',\'forma\',this.value)">'+
+  Object.keys(FORME).map(function(k){return'<option value="'+k+'"'+(k==g.forma?" selected":"")+'>'+FORME[k]+'</option>'}).join("")+'</select></div><div class="chips">'+
+  bs.map(function(b){return'<button class="chip'+(b.id==sel?" sel":"")+'" style="background:'+g.colore+';color:'+ink(g.colore)+';border-color:'+g.colore+'" onclick="pick(\''+b.id+'\')" aria-label="Seleziona '+esc(b.ini)+'">'+esc(b.ini)+'</button>'}).join("")+
+  '<button onclick="addB(\''+g.id+'\')">+ Ballerino</button>'+(bs.length||CO.gruppi.length<2?"":'<button onclick="delG('+gi+')">Togli gruppo</button>')+'</div></div>'});
+  $("cmp").innerHTML=h}
+function sezPanel(){$("sezl").innerHTML=CO.sezioni.length?CO.sezioni.map(function(s,k){return'<div class="srow"><label class="f"><span class="lbl">Nome</span><input type="text" id="sn'+k+'" value="'+esc(s.nome)+'" maxlength="24" onchange="sset('+k+',\'nome\',this.value)"></label><label class="f"><span class="lbl">Dall\'otto</span><input type="number" id="so'+k+'" min="1" value="'+(s.da/8+1)+'" onchange="sset('+k+',\'da\',this.value)"></label><button onclick="sdel('+k+')" aria-label="Togli la sezione '+esc(s.nome)+'">✕</button></div>'}).join(""):'<p class="note">Nessuna sezione. Vai all\'otto dove inizia e tocca "+ Sezione qui".</p>'}
+function gset(i,k,v){snap();CO.gruppi[i][k]=k=="nome"?(v.trim()||CO.gruppi[i].nome):v;save();renderFg();legend();company();selPanel()}
+function delG(i){snap();CO.gruppi.splice(i,1);save();all()}
+function pick(id){sel=id;all();if(window.innerWidth<920)$("selp").scrollIntoView({behavior:"smooth",block:"nearest"})}
+function fpanel(){var i=fi(),F=FS(),n=F.length,a=document.activeElement;
+  $("fon").hidden=i<0;$("foff").hidden=i>=0;$("bdelf").hidden=i<=0;
+  if(i>=0){var f=F[i];$("ftit").textContent="Formazione "+(i+1)+" di "+n;
+    $("fo").disabled=$("ftp").disabled=i==0;if(a!=$("fo"))$("fo").value=Math.floor(f.c/8)+1;$("ftp").value=String(f.c%8);
+    $("fdw").hidden=i==0;$("fd").value=String(f.dur);
+    if(i==0)$("fdn").textContent="È la posizione di partenza, sull'otto 1 tempo 1.";
+    else{var gap=f.c-F[i-1].c,du=Math.min(f.dur,gap);$("fdn").textContent=(f.dur>gap?"Dalla formazione precedente ci sono solo "+gap+" tempi: si spostano in "+gap+". ":"")+"Partono su "+lab(f.c-du)+" e arrivano su "+lab(f.c)+"."}
+    if(a!=$("fnt"))$("fnt").value=f.nota||"";
+    $("badd").textContent="+ Formazione dopo questa"}
+  else{var k=nextIdx(cur);$("ftit").textContent=k<0?"Dopo l'ultima formazione":"Tra la formazione "+k+" e la "+(k+1);
+    $("foff").textContent=k<0?"Qui i ragazzi restano fermi nell'ultima formazione.":"Per spostare i ragazzi vai su una formazione (tocca un numero sulla barra) oppure creane una qui.";
+    $("badd").textContent="+ Formazione su "+lab(Math.round(cur*2)/2)}}
+function selPanel(){var b=sel&&bal(sel);$("selp").hidden=!b;$("nosel").hidden=!!b;document.querySelectorAll(".bun").forEach(function(x){x.disabled=!undoS.length});if(!b)return;
+  var ep=pos(sel),p=ep||cpos(sel),lock=!ep||!!playing,i=fi();$("selwarn").hidden=!lock;
+  $("stit").textContent="Ballerino "+b.ini;
+  if(document.activeElement!=$("bi"))$("bi").value=b.ini;if(document.activeElement!=$("bn"))$("bn").value=b.nome||"";
+  $("bg").innerHTML=CO.gruppi.map(function(g){return'<option value="'+g.id+'"'+(g.id==b.gruppo?" selected":"")+'>'+esc(g.nome)+'</option>'}).join("");
+  var cells={},h="",pf=snapF(p.f),dis=lock?" disabled":"";[0,45,90,135,180,225,270,315].forEach(function(f){var v=dirS(f),c=Math.round(v[0])+1,r=Math.round(v[1])+1,ang=Math.atan2(v[1],v[0])*180/Math.PI;
+    cells[r*3+c]='<button class="'+(pf==f?"on":"")+'"'+dis+' onclick="setF('+f+')" title="'+FT[f]+'" aria-label="Guarda '+FT[f]+'"><span style="display:inline-block;transform:rotate('+ang+'deg)">➜</span></button>'});
+  var g=grp(b.gruppo);cells[4]='<div class="mid"><svg width="44" height="44" viewBox="-30 -30 60 60" aria-hidden="true">'+shape(g.forma,0,0,20,g.colore)+'</svg></div>';
+  for(var k=0;k<9;k++)h+=cells[k]||"<div></div>";$("comp").innerHTML=h;
+  $("ftxt").textContent=p.fuori?"È fuori scena: lo sguardo conta quando entra.":"Guarda "+FT[pf]+".";
+  $("liv").innerHTML=LIV.map(function(l){return'<button class="'+(p.liv==l[0]?"on":"")+'"'+dis+' onclick="setL(\''+l[0]+'\')">'+l[1]+'</button>'}).join("");
+  $("bfu").textContent=p.fuori?"Porta in scena":"Manda fuori scena";$("bfu").disabled=lock;
+  var mv=i>0&&ep&&(function(){var a=FS()[i-1].pos[sel];return Math.hypot(a.x-ep.x,a.y-ep.y)>=.15||ep.curva})();
+  $("curvn").hidden=lock;$("curvn").textContent=i==0?"Percorso: qui siamo alla partenza (formazione 1). Il pallino giallo per curvare la strada compare dalla formazione 2 in poi.":
+    !PR.showP?"Attiva «Percorsi» sotto la barra dei conteggi per vedere e curvare la strada.":
+    mv?"Trascina il pallino giallo a metà della sua strada per curvarla.":"In questa formazione "+b.ini+" resta fermo: non c'è una strada da curvare.";
+  $("bstr").hidden=lock||i<=0||!ep.curva}
+function setF(f){var p=pos(sel);if(!p)return;snap();p.f=f;save();renderFg();selPanel();readSel()}
+function setL(l){var p=pos(sel);if(!p)return;snap();p.liv=l;save();renderFg();selPanel();readSel()}
+function refresh(){renderFg();tl();fpanel();selPanel();if(sel)readSel();else hint(HINT);company()}
+function all(){renderStage();legend();sezPanel();mpanel();libPanel();sharePanel();whoPanel();refresh();dstepsPanel();$("ban").hidden=!CO.esempio;$("exrow").hidden=!!CO.esempio;var mia=null;try{mia=localStorage.getItem("dz-coreo-mia")}catch(e){}$("bback").hidden=!(CO.esempio&&mia);fill()}
+
+$("bi").addEventListener("focus",snap);$("bn").addEventListener("focus",snap);$("fnt").addEventListener("focus",snap);
+$("bi").addEventListener("input",function(){var b=bal(sel);if(!b)return;b.ini=this.value.trim().toUpperCase()||"?";save();renderFg();company();legend();readSel();$("stit").textContent="Ballerino "+b.ini});
+$("bn").addEventListener("input",function(){var b=bal(sel);if(!b)return;b.nome=this.value.trim();save();readSel()});
+$("fnt").addEventListener("input",function(){var f=edF();if(!f)return;f.nota=this.value;save();ph()});
+$("bg").addEventListener("change",function(){snap();bal(sel).gruppo=this.value;save();all()});
+$("bfu").addEventListener("click",function(){var p=pos(sel);if(!p)return;snap();var hw=P().w/2;if(p.fuori){var s=freeSpot();p.x=s[0];p.y=s[1]}else{p.x=r1((p.x>=0?1:-1)*(hw+1));p.y=r1(P().d*(qOf(p.y)-.5)/P().quinte)}p.curva=null;setVia(p);save();refresh()});
+$("bstr").addEventListener("click",function(){var p=pos(sel);if(!p)return;snap();p.curva=null;save();refresh()});
+$("bdel").addEventListener("click",function(){var bt=this;if(!bt.dataset.arm){bt.dataset.arm=1;bt.textContent="Confermi? Tocca di nuovo";setTimeout(function(){delete bt.dataset.arm;bt.textContent="Elimina ballerino"},3000);return}
+  delete bt.dataset.arm;bt.textContent="Elimina ballerino";snap();CO.ballerini=CO.ballerini.filter(function(b){return b.id!=sel});CO.formazioni.forEach(function(F){delete F.pos[sel]});sel=null;save();all()});
+document.querySelectorAll(".bun").forEach(function(x){x.addEventListener("click",undo)});
+$("bag").addEventListener("click",addG);$("badd").addEventListener("click",addF);$("bdelf").addEventListener("click",function(){delF(this)});
+$("bsez").addEventListener("click",addSez);
+$("fo").addEventListener("change",setArrivo);$("ftp").addEventListener("change",setArrivo);
+$("fd").addEventListener("change",function(){var f=edF();if(!f)return;snap();f.dur=+this.value;save();refresh()});
+$("bsv").addEventListener("click",function(){var bt=this;if(!bt.dataset.arm){bt.dataset.arm=1;bt.textContent="Confermi? Tocca di nuovo";setTimeout(function(){delete bt.dataset.arm;bt.textContent="Svuota e comincia"},3000);return}
+  pause(true);snap();var pl=CO.palco;CO=vuota();CO.id=newId();CO.titolo="Nuova coreografia";CO.palco=pl;sel=null;cur=0;save();all();restoreMine()});
+$("bex").addEventListener("click",function(){pause(true);snap();try{localStorage.setItem("dz-coreo-mia",JSON.stringify(CO))}catch(e){}var pl=CO.palco;sel=null;esempio();CO.palco=pl;save();all();loadExampleMusic();
+  hint("Ecco l'esempio: premi ▶ Play. La tua coreografia è al sicuro: per riaprirla tocca «Torna alla mia coreografia» in alto.");window.scrollTo({top:0,behavior:"smooth"})});
+$("bback").addEventListener("click",function(){var m=null;try{m=migra(JSON.parse(localStorage.getItem("dz-coreo-mia")))}catch(e){}if(!m)return;pause(true);snap();CO=m;cur=0;sel=null;
+  try{localStorage.removeItem("dz-coreo-mia")}catch(e){}save();all();restoreMine();hint("Ecco di nuovo la tua coreografia.")});
+$("ccol").addEventListener("change",function(){snap();CO.colori=this.value;save();all()});
+$("dsp").addEventListener("change",function(){if(this.value)dispose(this.value);this.value=""});
+$("bpl").addEventListener("click",function(){play()});$("bst").addEventListener("click",function(){go(0)});
+$("bpr").addEventListener("click",function(){navF(-1)});$("bnx").addEventListener("click",function(){navF(1)});
+$("ibpm").addEventListener("change",function(){var v=parseFloat(String(this.value).replace(",","."));if(isNaN(v))return fill();snap();CO.musica.bpm=clamp(Math.round(v*2)/2,40,220);save();fill();tl()});
+$("mfile").addEventListener("change",function(){var f=this.files&&this.files[0];if(f){mnote("");loadMusic(f,f.name.replace(/\.[^.]+$/,""),true)}this.value=""});
+$("mrem").addEventListener("click",function(){pause(true);unloadMusic(!!(MUS&&MUS.esempio));mpanel();tl();mnote("")});
+$("btap").addEventListener("pointerdown",function(e){e.preventDefault();tap()});
+$("btap").addEventListener("click",function(e){if(e.detail===0)tap()});
+document.querySelectorAll("[data-off]").forEach(function(b){b.addEventListener("click",function(){var d=b.dataset.off,v=d=="b"?60/CO.musica.bpm:d=="-b"?-60/CO.musica.bpm:+d;setOff((CO.musica.offset||0)+v);if(playing){playing.prev=cOf(songNow())}})});
+$("moff").addEventListener("change",function(){var v=parseFloat(String(this.value).replace(",","."));if(isNaN(v))return fill();snap();setOff(v)});
+$("bmark").addEventListener("click",markAttacco);
+$("ostp").addEventListener("change",function(){PR.stopF=this.checked;save()});
+$("ispd").addEventListener("change",function(){PR.speed=+this.value;save()});
+$("omet").addEventListener("change",function(){PR.met=this.checked;save()});
+$("ocin").addEventListener("change",function(){PR.cin=this.checked;save()});
+$("opth").addEventListener("change",function(){PR.showP=this.checked;save();renderFg();selPanel()});
+
+/* ---------- trascinamento sul palco ---------- */
+function sp(e){var p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;var q=p.matrixTransform(svg.getScreenCTM().inverse());return inv(q.x,q.y)}
+svg.addEventListener("pointerdown",function(e){if(playing)pause();if(MODE=="dancer")return;var h=e.target.closest("[data-h]"),g=e.target.closest("[data-id]"),c=sp(e);
+  if(h&&edF()){snap();drag={h:h.getAttribute("data-h"),moved:false};svg.setPointerCapture(e.pointerId);return}
+  if(g){var id=g.getAttribute("data-id"),p=pos(id);sel=id;
+    if(p){snap();drag={id:id,dx:c[0]-p.x,dy:c[1]-p.y,moved:false};svg.setPointerCapture(e.pointerId)}
+    refresh();if(!p)hint(bal(id).ini+" qui è in movimento: per spostarlo vai su una formazione (tocca un numero sulla barra dei conteggi).");return}
+  sel=null;refresh();hint(describe(r1(c[0]),r1(c[1])))});
+svg.addEventListener("pointermove",function(e){if(!drag)return;var c=sp(e),hw=P().w/2,d=P().d,i=fi();
+  if(drag.h){var A=FS()[i-1].pos[drag.h],B=FS()[i].pos[drag.h];B.curva={x:r1(2*c[0]-(A.x+B.x)/2),y:r1(clamp(2*c[1]-(A.y+B.y)/2,-1,d+1))};drag.moved=true;renderFg();return}
+  var p=pos(drag.id);p.x=r1(clamp(c[0]-drag.dx,-(hw+M-.45),hw+M-.45));p.y=r1(clamp(c[1]-drag.dy,.25,d-.25));drag.moved=true;setVia(p);renderFg();readSel()});
+function up(){if(!drag)return;if(!drag.moved)undoS.pop();drag=null;save();refresh()}
+svg.addEventListener("pointerup",up);svg.addEventListener("pointercancel",up);
+document.addEventListener("keydown",function(e){if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;
+  if(e.key==" "){e.preventDefault();play();return}
+  if(MODE=="dancer"){var v2={ArrowLeft:-1,ArrowRight:1}[e.key];if(v2){e.preventDefault();navF(v2)}return}
+  if(e.key=="t"||e.key=="T"){tap();return}
+  if((e.ctrlKey||e.metaKey)&&e.key=="z"){e.preventDefault();undo();return}
+  var v={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!v)return;
+  var p=sel&&pos(sel);if(!p){if(v[0]){e.preventDefault();navF(v[0])}return}
+  e.preventDefault();snap();var st=e.shiftKey?.5:.1,a=inv(0,0),b=inv(v[0]*K,v[1]*K);
+  p.x=r1(p.x+(b[0]-a[0])*st);p.y=r1(clamp(p.y+(b[1]-a[1])*st,.25,P().d-.25));setVia(p);save();renderFg();readSel()});
+
+/* ---------- viste e misure ---------- */
+function setView(v){vista=v;document.querySelectorAll(".views button").forEach(function(b){var on=b.dataset.v==v;b.classList.toggle("on",on);b.setAttribute("aria-selected",on)});$("vdesc").innerHTML=DESC[v];save();renderStage();renderFg();selPanel()}
+document.querySelectorAll(".views button").forEach(function(b){b.onclick=function(){setView(b.dataset.v)}});
+function fill(){var p=P(),a=document.activeElement;$("ccol").value=CO.colori;if(a!=$("iw"))$("iw").value=p.w;if(a!=$("id"))$("id").value=p.d;if(a!=$("iq"))$("iq").value=p.quinte;$("ip").value=String(p.passo);$("ig").checked=p.griglia;$("in").checked=p.numeri;
+  if(a!=$("ibpm"))$("ibpm").value=CO.musica.bpm;if(a!=$("moff"))$("moff").value=(CO.musica.offset||0).toFixed(2);$("ostp").checked=!!PR.stopF;$("ispd").value=String(PR.speed);$("omet").checked=PR.met;$("ocin").checked=PR.cin;$("opth").checked=PR.showP}
+function num(id,a,b,def){var v=parseFloat($(id).value);return isNaN(v)?def:clamp(v,a,b)}
+function change(){var p=P();p.w=num("iw",4,24,10);p.d=num("id",3,16,7);p.quinte=Math.round(num("iq",1,6,3));p.passo=+$("ip").value;p.griglia=$("ig").checked;p.numeri=$("in").checked;
+  FS().forEach(function(F){CO.ballerini.forEach(function(b){var o=F.pos[b.id];if(o.fuori){o.x=r1((o.x>0?1:-1)*Math.max(Math.abs(o.x),p.w/2+.6))}o.y=clamp(o.y,.25,p.d-.25);setVia(o)})});save();renderStage();renderFg();if(sel)readSel()}
+["iw","id","iq"].forEach(function(i){$(i).addEventListener("input",change);$(i).addEventListener("change",function(){change();fill()})});
+["ip","ig","in"].forEach(function(i){$(i).addEventListener("change",change)});
+$("preset").addEventListener("change",function(){if(!this.value)return;snap();var a=this.value.split(","),p=P();p.w=+a[0];p.d=+a[1];p.quinte=+a[2];this.value="";fill();change()});
+
+(function(){var h="";for(var t=0;t<8;t+=.5)h+='<option value="'+t+'">'+(Math.floor(t)+1)+(t%1?" e":"")+'</option>';$("ftp").innerHTML=h;
+  $("fd").innerHTML=DURS.map(function(d){return'<option value="'+d+'">'+d+(d==1?" tempo":" tempi")+'</option>'}).join("")})();
+load();setView(vista);all();
+if(/^#[zj]/.test(location.hash)){document.body.classList.add("dmode");unpack(location.hash.slice(1)).then(function(d){enterDancer(d,"shared")}).catch(function(){document.body.classList.remove("dmode");startMusic();hint("Il link sembra incompleto: chiedi all'insegnante di rimandartelo.")})}
+else startMusic();
+$("ctit").addEventListener("input",function(){if(CO.esempio)return;CO.titolo=this.value;save()});$("ctit").addEventListener("change",function(){libPanel();sharePanel()});
+$("bnew").addEventListener("click",newCO);$("bsave").addEventListener("click",saveFile);
+$("bdup").addEventListener("click",function(){var o=cl(CO),old=CO.id;o.id=newId();delete o.esempio;o.titolo=(CO.esempio?"Il mio musical":(CO.titolo||"Coreografia")+" (copia)");libPut();
+  idbDo("readonly",function(st){return st.get("brano:"+old)}).then(function(v){if(v)return idbDo("readwrite",function(st){return st.put(v,"brano:"+o.id)})}).catch(function(){}).then(function(){openCO(o,"Copia creata: è tra «Le mie coreografie» e puoi modificarla.")})});
+$("ofile").addEventListener("change",function(){var f=this.files&&this.files[0];this.value="";if(!f)return;var r=new FileReader();r.onload=function(){importText(String(r.result))};r.readAsText(f)});
+$("ccopyc").addEventListener("click",function(){var t=$("ccopyt");copyText(t.value,function(ok){if(!ok){t.focus();t.select()}$("ccopyh").innerHTML=ok?"<b>Copiato.</b> Incollalo in un documento e salvalo con estensione .json.":"Testo selezionato: premi Ctrl+C (o Cmd+C) per copiarlo."});if(!CO.esempio){lsSet("dz-exp:"+CO.id,{t:Date.now(),h:coHash()});libPanel()}});
+$("scopyc").addEventListener("click",function(){var t=$("scopyt");copyText(t.value,function(ok){if(!ok){t.focus();t.select()}$("scopyh").innerHTML=ok?"<b>Copiato.</b>":"Testo selezionato: premi Ctrl+C (o Cmd+C) per copiarlo."})});
+$("shini").addEventListener("change",function(){PR.shIni=this.checked;save();sharePanel()});
+$("bprev").addEventListener("click",function(){enterDancer(null,"preview")});$("blink").addEventListener("click",shareLink);$("bshf").addEventListener("click",shareFile);
+$("dexit").addEventListener("click",exitDancer);$("bprint").addEventListener("click",printScheda);
+$("dcopy").addEventListener("click",function(){var o=cl(CO);delete o.condivisa;o.id=newId();o.titolo=(o.titolo||"Coreografia")+" (copia)";MODE="edit";DKIND=null;ME=null;document.body.classList.remove("dmode");
+  try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}var v=null;try{v=localStorage.getItem("dz-vista")}catch(e){}vista=DESC[v]?v:"pub";openCO(o,"Questa è una tua copia: puoi modificarla. La trovi in «Le mie coreografie».");setView(vista)});
+try{if(!localStorage.getItem("dz-guida")){$("guide").open=true;localStorage.setItem("dz-guida","1")}}catch(e){$("guide").open=true}
+</script>
+
+</body>
+</html>
