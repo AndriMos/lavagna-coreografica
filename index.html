@@ -36,6 +36,8 @@ header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 h1{font:700 26px/1.1 var(--f-display);letter-spacing:.01em;margin:0;text-transform:uppercase}
 h2{font:700 17px/1.2 var(--f-display);letter-spacing:.06em;text-transform:uppercase;margin:0}
 .tag{font:600 13px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.vtest{font:700 12px var(--f-display);letter-spacing:.08em;text-transform:uppercase;background:var(--spike);color:#1b1a1d;border-radius:6px;padding:2px 8px}
+.vfoot{color:var(--mut);font-size:12px;margin:4px 0 0;text-align:center}
 .lbl{font:600 12px var(--f-display);letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
 .main{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
 @media (min-width:920px){.main{grid-template-columns:minmax(0,1.75fr) minmax(300px,1fr)}}
@@ -209,7 +211,7 @@ details#libd summary{cursor:pointer;font-weight:600}
 </head>
 <body>
 <div class="w">
-  <header><h1>Lavagna coreografica</h1><span class="tag ed">Tappa 5 · condivisione</span><span class="tag dv">Il mio percorso</span></header>
+  <header><h1>Lavagna coreografica</h1><span class="tag ed">Tappa 5 · condivisione</span><span class="tag dv">Il mio percorso</span><span id="vtest" class="vtest" hidden>Versione di prova</span></header>
 
   <div class="views" role="tablist" aria-label="Vista del palco">
     <button id="v-pub" data-v="pub" role="tab">Pubblico</button>
@@ -379,6 +381,7 @@ details#libd summary{cursor:pointer;font-weight:600}
   </div>
 </div>
 
+<p class="vfoot w">Lavagna coreografica · versione 5.1 · 28/10/2026</p>
 <div id="pscheda" aria-hidden="true"></div>
 
 <script>
@@ -716,7 +719,7 @@ function decode(buf){return new Promise(function(res,rej){var O=window.OfflineAu
 function peaks(b){var n=Math.ceil(b.duration*100),out=new Float32Array(n),ch=[],mx=0;for(var i=0;i<b.numberOfChannels&&i<2;i++)ch.push(b.getChannelData(i));
   var w=Math.max(1,Math.floor(b.sampleRate/100));for(var k=0;k<n;k++){var m=0,a=k*w,e=Math.min(a+w,ch[0].length);for(var j=a;j<e;j+=3)for(var q=0;q<ch.length;q++){var v=ch[q][j];if(v<0)v=-v;if(v>m)m=v}out[k]=m;if(m>mx)mx=m}
   if(mx>0)for(k=0;k<n;k++)out[k]/=mx;return out}
-function loadMusic(blob,name,persist){pause(true);unloadMusic(true);MUS={name:name||"brano",dur:0,el:true,ready:false};
+function loadMusic(blob,name,persist){if(MUS)pause(true);unloadMusic(true);MUS={name:name||"brano",dur:0,el:true,ready:false};
   try{AUD=new Audio();AUD.preload="auto";AUD.src=URL.createObjectURL(blob);
     AUD.addEventListener("loadedmetadata",function(){if(MUS&&isFinite(AUD.duration)){MUS.dur=AUD.duration;mpanel();tl()}});
     AUD.addEventListener("error",function(){if(MUS)MUS.el=false})}catch(e){MUS.el=false}
@@ -952,6 +955,7 @@ $("preset").addEventListener("change",function(){if(!this.value)return;snap();va
 
 (function(){var h="";for(var t=0;t<8;t+=.5)h+='<option value="'+t+'">'+(Math.floor(t)+1)+(t%1?" e":"")+'</option>';$("ftp").innerHTML=h;
   $("fd").innerHTML=DURS.map(function(d){return'<option value="'+d+'">'+d+(d==1?" tempo":" tempi")+'</option>'}).join("")})();
+try{if(/^test--/.test(location.hostname))$("vtest").hidden=false}catch(e){}
 load();setView(vista);all();
 if(/^#[zj]/.test(location.hash)){document.body.classList.add("dmode");unpack(location.hash.slice(1)).then(function(d){enterDancer(d,"shared")}).catch(function(){document.body.classList.remove("dmode");startMusic();hint("Il link sembra incompleto: chiedi all'insegnante di rimandartelo.")})}
 else startMusic();
